@@ -100,6 +100,16 @@ function ensureCajaSchema(db) {
       color TEXT PRIMARY KEY,
       stock_total INTEGER NOT NULL DEFAULT 100
     );
+
+    CREATE TABLE IF NOT EXISTS caja_recargas (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      color     TEXT    NOT NULL,
+      folio_inicio INTEGER NOT NULL,
+      folio_fin    INTEGER NOT NULL,
+      cantidad  INTEGER NOT NULL,
+      operador  TEXT,
+      timestamp INTEGER NOT NULL
+    );
   `);
 
   // Migración: las primeras versiones de este esquema usaban "billete_recibido".
@@ -314,7 +324,7 @@ function createCajaRepository(db) {
   // Incluye los 'cancelado' (cierre de turno) porque ese brazalete físico ya
   // se entregó. Los folios son únicos y crecen indefinidamente (ññ-001 → ññ-N).
   function obtenerInventarioColores() {
-    return db.prepare(`
+    const rows = db.prepare(`
       SELECT
         c.color,
         c.stock_total,
@@ -331,22 +341,40 @@ function createCajaRepository(db) {
       ...row,
       disponible: Math.max(0, row.stock_total - row.vendidos)
     }));
+
+    const ultimasRecargas = db.prepare(`
+      SELECT r.color, r.folio_inicio, r.folio_fin, r.cantidad, r.timestamp
+      FROM caja_recargas r
+      INNER JOIN (
+        SELECT color, MAX(timestamp) AS mt FROM caja_recargas GROUP BY color
+      ) m ON r.color = m.color AND r.timestamp = m.mt
+    `).all();
+    const recargaMap = Object.fromEntries(ultimasRecargas.map((r) => [r.color, r]));
+
+    return rows.map((row) => ({ ...row, ultima_recarga: recargaMap[row.color] || null }));
   }
 
   // Aumenta el stock_total de un color (cuando llegan brazaletes físicos).
-  // No mueve folios; los próximos brazaletes seguirán la secuencia natural.
-  function recargarStock({ color, cantidad }) {
+  // Registra el rango de folios físicos para trazabilidad.
+  function recargarStock({ color, folio_inicio, folio_fin, operador }) {
     const colorLimpio = String(color || '').trim();
     if (!colorLimpio) throw domainError(400, 'Indica el color a recargar.');
-    const n = Math.round(Number(cantidad));
-    if (!Number.isInteger(n) || n <= 0 || n > 10000) {
-      throw domainError(400, 'La cantidad debe ser un entero entre 1 y 10000.');
-    }
+    const fi = Math.round(Number(folio_inicio));
+    const ff = Math.round(Number(folio_fin));
+    if (!Number.isInteger(fi) || fi <= 0) throw domainError(400, 'El folio inicio debe ser un número positivo.');
+    if (!Number.isInteger(ff) || ff < fi) throw domainError(400, 'El folio fin debe ser mayor o igual al folio inicio.');
+    const n = ff - fi + 1;
+    if (n > 10000) throw domainError(400, 'Rango de folios demasiado grande (máx 10,000).');
     const row = db.prepare('SELECT * FROM caja_inventario_color WHERE color = ?').get(colorLimpio);
     if (!row) throw domainError(404, `El color "${colorLimpio}" no existe en el inventario.`);
-    db.prepare('UPDATE caja_inventario_color SET stock_total = stock_total + ? WHERE color = ?')
-      .run(n, colorLimpio);
-    return { color: colorLimpio, agregado: n, nuevo_stock_total: row.stock_total + n };
+    db.transaction(() => {
+      db.prepare('UPDATE caja_inventario_color SET stock_total = stock_total + ? WHERE color = ?')
+        .run(n, colorLimpio);
+      db.prepare(`INSERT INTO caja_recargas (color, folio_inicio, folio_fin, cantidad, operador, timestamp)
+                  VALUES (?, ?, ?, ?, ?, ?)`)
+        .run(colorLimpio, fi, ff, n, operador || null, Date.now());
+    })();
+    return { color: colorLimpio, agregado: n, folio_inicio: fi, folio_fin: ff, nuevo_stock_total: row.stock_total + n };
   }
 
   const abrirTurnoTransaction = db.transaction(({ operador, fondo_inicial, tipo_cambio_usd }) => {

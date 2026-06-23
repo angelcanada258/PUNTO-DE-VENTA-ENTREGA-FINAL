@@ -19,7 +19,8 @@ const COLORS = TICKETS.map((t) => ({
   stock_total: 100,
   vendidos: 0,
   disponible: 100,
-  adentro: 0
+  adentro: 0,
+  ultima_recarga: null
 }));
 
 const USERS = [
@@ -53,7 +54,12 @@ function createDemoRepository() {
 
     listarTickets: async () => TICKETS,
     obtenerInventarioColores: async () => COLORS,
-    recargarStock: async ({ color, cantidad }) => ({ color, agregado: Number(cantidad) || 0, nuevo_stock_total: 100 + (Number(cantidad) || 0) }),
+    recargarStock: async ({ color, folio_inicio, folio_fin }) => {
+      const fi = Number(folio_inicio) || 0;
+      const ff = Number(folio_fin) || 0;
+      const n = ff >= fi ? ff - fi + 1 : 0;
+      return { color, agregado: n, folio_inicio: fi, folio_fin: ff, nuevo_stock_total: 100 + n };
+    },
 
     obtenerTurnoAbierto: async () => fakeShift(),
     abrirTurno: async () => fakeShift(),

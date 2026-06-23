@@ -259,6 +259,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
       <button class="nav-btn admin-only" data-page="dashboard"><span>Panel</span></button>
       <button class="nav-btn active" data-page="caja"><span>Caja</span></button>
       <button class="nav-btn admin-only" data-page="inventario"><span>Inventario</span></button>
+      <button class="nav-btn admin-only" data-page="depositos"><span>Depósitos y retiros</span></button>
       <button class="nav-btn admin-only" data-page="corte"><span>Corte</span></button>
       <button class="nav-btn admin-only" data-page="historial"><span>Historial</span></button>
       <button class="nav-btn admin-only" data-page="usuarios"><span>Usuarios</span></button>
@@ -325,9 +326,8 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
     <section class="page active" id="page-caja">
       <div class="page-wrap">
         <div class="wizard-progress no-print" id="wizardProgress">
-          <div class="wizard-step active" data-step="1"><span class="wizard-step-num">1</span>Selección</div>
-          <div class="wizard-step" data-step="2"><span class="wizard-step-num">2</span>Resumen</div>
-          <div class="wizard-step" data-step="3"><span class="wizard-step-num">3</span>Pago</div>
+          <div class="wizard-step active" data-step="1" onclick="wizardGoTo(1)"><span class="wizard-step-num">1</span>Selección</div>
+          <div class="wizard-step" data-step="2" onclick="wizardGoTo(2)"><span class="wizard-step-num">2</span>Pago</div>
         </div>
         <main class="layout" id="cajaLayout">
           <section id="cajaStepSeleccion">
@@ -353,21 +353,18 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
                 <div class="total-row big"><span>Total MXN</span><span id="cartTotal">$0</span></div>
                 <div class="total-row"><span>Equivalente USD</span><span id="cartTotalUsd">$0.00</span></div>
               </div>
-              <div id="resumenNavButtons" class="resumen-nav-buttons">
-                <button class="btn-secondary" style="margin:0;flex:1" onclick="wizardGoTo(1)">Regresar</button>
-                <button class="btn-primary" style="margin:0;flex:1" onclick="wizardGoTo(3)"><span>Continuar al pago</span><span>→</span></button>
-              </div>
-              <button class="btn-secondary" id="volverAlResumenBtn" hidden onclick="wizardGoTo(2)">Regresar al resumen</button>
-            </div>
-            <div class="card" id="pagoCard" hidden>
-              <span class="eyebrow">Pago</span><h2>Método de pago</h2>
+              <div style="border-top:1px solid var(--line);margin:16px 0 14px"></div>
+              <span class="field-label">Método de pago</span>
               <div class="segmented" id="paymentMethods"></div>
               <div id="paymentLinesList" style="margin-top:14px"></div>
               <div id="courtesyControls" hidden>
                 <div class="control-field"><label for="motivoInput">Motivo de cortesía</label><input id="motivoInput" placeholder="Ej. invitación de gerencia" /></div>
                 <div class="control-field"><label for="authInput">Autorizado por</label><input id="authInput" placeholder="Nombre del responsable" /></div>
               </div>
-              <button class="btn-primary" id="confirmBtn" onclick="confirmSale()" disabled><span>Cobrar y generar folios</span><span id="confirmTotal">$0</span></button>
+              <div id="resumenNavButtons" class="resumen-nav-buttons">
+                <button class="btn-secondary" style="margin:0;flex:1" onclick="wizardGoTo(1)">← Regresar</button>
+                <button class="btn-primary" id="confirmBtn" style="margin:0;flex:1" onclick="confirmSale()" disabled><span>Cobrar y generar folios</span><span id="confirmTotal">$0</span></button>
+              </div>
               <p class="hint-line" id="confirmHint"></p>
             </div>
             <div class="card result-card" id="resultCard" hidden>
@@ -397,13 +394,37 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
       </div>
     </section>
 
+    <section class="page admin-only" id="page-depositos">
+      <div class="page-wrap">
+        <div class="card">
+          <span class="eyebrow">Movimientos de caja</span><h2>Depósitos y retiros</h2>
+          <p class="hint">Registra ingresos extra (depósito) o salidas de efectivo (retiro: hielo, suministros, etc.).</p>
+          <div class="segmented" style="margin-top:12px;grid-template-columns:repeat(2,1fr)">
+            <button id="cajaMovTipoDep" class="active" type="button" onclick="setCajaMovTipo('deposito')">Depósito (+)</button>
+            <button id="cajaMovTipoRet" type="button" onclick="setCajaMovTipo('retiro')">Retiro (−)</button>
+          </div>
+          <div class="control-field">
+            <label for="cajaMovMonto">Monto MXN</label>
+            <input id="cajaMovMonto" type="number" min="1" step="1" placeholder="0" />
+          </div>
+          <div class="control-field">
+            <label for="cajaMovDesc">Descripción</label>
+            <input id="cajaMovDesc" type="text" placeholder="Ej. Compra de hielo" />
+          </div>
+          <button class="btn-primary" onclick="registrarCajaMov()"><span>Registrar movimiento</span><span>+</span></button>
+          <p class="hint-line" id="cajaMovHint"></p>
+          <h3 style="margin:18px 0 8px;font-size:14px">Movimientos del turno</h3>
+          <div id="cajaMovList"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="page admin-only" id="page-corte">
       <div class="page-wrap">
 
         <div class="wizard-progress no-print" id="corteProgress">
           <div class="wizard-step active" data-step="1" onclick="corteGoTo(1)"><span class="wizard-step-num">1</span>Revisión</div>
-          <div class="wizard-step" data-step="2" onclick="corteGoTo(2)"><span class="wizard-step-num">2</span>Movimientos</div>
-          <div class="wizard-step" data-step="3" onclick="corteGoTo(3)"><span class="wizard-step-num">3</span>Cierre</div>
+          <div class="wizard-step" data-step="2" onclick="corteGoTo(2)"><span class="wizard-step-num">2</span>Cierre</div>
         </div>
 
         <!-- ── Paso 1 · Revisión ─────────────────────────────────────────── -->
@@ -431,40 +452,11 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
           </div>
 
           <div class="corte-actions" style="margin-top:18px">
-            <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(2)"><span>Continuar a movimientos</span><span>→</span></button>
+            <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(2)"><span>Continuar al cierre</span><span>→</span></button>
           </div>
         </section>
 
-        <!-- ── Paso 2 · Movimientos ──────────────────────────────────────── -->
-        <section id="corteStepMovimientos" hidden>
-          <div class="card">
-            <span class="eyebrow">Movimientos de caja</span><h2>Depósitos y retiros</h2>
-            <p class="hint">Registra ingresos extra (depósito) o salidas de efectivo (retiro: hielo, suministros, etc.).</p>
-            <div class="segmented" style="margin-top:12px;grid-template-columns:repeat(2,1fr)">
-              <button id="cajaMovTipoDep" class="active" type="button" onclick="setCajaMovTipo('deposito')">Depósito (+)</button>
-              <button id="cajaMovTipoRet" type="button" onclick="setCajaMovTipo('retiro')">Retiro (−)</button>
-            </div>
-            <div class="control-field">
-              <label for="cajaMovMonto">Monto MXN</label>
-              <input id="cajaMovMonto" type="number" min="1" step="1" placeholder="0" />
-            </div>
-            <div class="control-field">
-              <label for="cajaMovDesc">Descripción</label>
-              <input id="cajaMovDesc" type="text" placeholder="Ej. Compra de hielo" />
-            </div>
-            <button class="btn-primary" onclick="registrarCajaMov()"><span>Registrar movimiento</span><span>+</span></button>
-            <p class="hint-line" id="cajaMovHint"></p>
-            <h3 style="margin:18px 0 8px;font-size:14px">Movimientos del turno</h3>
-            <div id="cajaMovList"></div>
-          </div>
-
-          <div class="corte-actions" style="margin-top:18px">
-            <button class="btn-secondary" style="margin:0;flex:1" onclick="corteGoTo(1)">← Regresar</button>
-            <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(3)"><span>Continuar al cierre</span><span>→</span></button>
-          </div>
-        </section>
-
-        <!-- ── Paso 3 · Cierre ───────────────────────────────────────────── -->
+        <!-- ── Paso 2 · Cierre ───────────────────────────────────────────── -->
         <section id="corteStepCierre" hidden>
           <div class="card">
             <span class="eyebrow">Cierre</span><h2>Resumen de cierre</h2>
@@ -486,8 +478,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
           </div>
 
           <div class="corte-actions" style="margin-top:18px">
-            <button class="btn-secondary" style="margin:0;flex:1" onclick="corteGoTo(2)">← Regresar</button>
-            <button class="btn-secondary" style="margin:0;flex:1" onclick="printCorte()">Imprimir corte</button>
+            <button class="btn-secondary" style="margin:0;flex:1" onclick="corteGoTo(1)">← Regresar</button>
             <button class="btn-primary btn-danger" style="margin:0;flex:1" onclick="cerrarTurno()">Cerrar turno</button>
           </div>
         </section>
@@ -772,7 +763,7 @@ function applyRole() {
   const isAdmin = session.rol === 'admin';
   document.getElementById('sidebarUser').textContent = session.usuario + (isAdmin ? ' · admin' : ' · cajera');
   document.querySelectorAll('.admin-only').forEach((el) => { el.hidden = !isAdmin; });
-  if (!isAdmin && ['dashboard', 'inventario', 'corte', 'historial', 'usuarios'].includes(getCurrentPage())) showPage('caja');
+  if (!isAdmin && ['dashboard', 'inventario', 'depositos', 'corte', 'historial', 'usuarios'].includes(getCurrentPage())) showPage('caja');
 }
 
 function toggleSidebar() {
@@ -854,6 +845,7 @@ async function cerrarTurno() {
       method: 'POST',
       body: JSON.stringify({ operador: session.usuario, efectivo_contado: contado })
     });
+    await printCorte();
     document.getElementById('efectivoContadoMxn').value = '';
     document.getElementById('efectivoContadoUsd').value = '';
     document.getElementById('fondoSiguiente').value = '';
@@ -868,19 +860,20 @@ async function cerrarTurno() {
 function showPage(page) {
   if (!session) return;
   const isAdmin = session.rol === 'admin';
-  if (!isAdmin && ['dashboard', 'inventario', 'corte', 'historial', 'usuarios'].includes(page)) return;
+  if (!isAdmin && ['dashboard', 'inventario', 'depositos', 'corte', 'historial', 'usuarios'].includes(page)) return;
   document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
   document.getElementById('page-' + page)?.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
-  const titles = { dashboard: 'Panel de control', caja: 'Caja', inventario: 'Inventario', corte: 'Corte de caja', historial: 'Historial', usuarios: 'Usuarios' };
+  const titles = { dashboard: 'Panel de control', caja: 'Caja', inventario: 'Inventario', depositos: 'Depósitos y retiros', corte: 'Corte de caja', historial: 'Historial', usuarios: 'Usuarios' };
   document.getElementById('pageTitle').textContent = titles[page] || 'Kaan Luum';
   if (page === 'corte') { corteStep = 1; renderCorteStep(); }
+  if (page === 'depositos') renderDepositos();
   refreshAll();
 }
 
 async function refreshAll() {
   if (!session || !turno) return;
-  const tasks = [renderTop(), renderDashboard(), renderInventory(), renderCorte(), renderHistory()];
+  const tasks = [renderTop(), renderDashboard(), renderInventory(), renderCorte(), renderDepositos(), renderHistory()];
   if (session.rol === 'admin') tasks.push(renderUsers());
   const results = await Promise.allSettled(tasks);
   results.forEach((r) => { if (r.status === 'rejected') console.error('Error al refrescar:', r.reason); });
@@ -1133,8 +1126,6 @@ async function confirmSale() {
   ).join('');
 
   document.getElementById('resumenCard').hidden = true;
-  document.getElementById('pagoCard').hidden = true;
-  document.getElementById('cajaAside').classList.remove('wizard-two-col');
   document.getElementById('resultCard').hidden = false;
   cart = {}; paymentLines = []; selectedPaymentMethod = 'efectivo';
   document.getElementById('motivoInput').value = '';
@@ -1159,7 +1150,7 @@ function renderCorteStep() {
     el.classList.toggle('active', n === corteStep);
     el.classList.toggle('done', n < corteStep);
   });
-  const ids = { 1: 'corteStepRevision', 2: 'corteStepMovimientos', 3: 'corteStepCierre' };
+  const ids = { 1: 'corteStepRevision', 2: 'corteStepCierre' };
   for (const [n, id] of Object.entries(ids)) {
     const el = document.getElementById(id);
     if (el) el.hidden = Number(n) !== corteStep;
@@ -1174,10 +1165,7 @@ function renderWizardStep() {
   });
   document.getElementById('cajaStepSeleccion').hidden = cajaStep !== 1;
   document.getElementById('cajaAside').hidden = cajaStep === 1;
-  document.getElementById('cajaAside').classList.toggle('wizard-two-col', cajaStep === 3);
   document.getElementById('resumenNavButtons').hidden = cajaStep !== 2;
-  document.getElementById('volverAlResumenBtn').hidden = cajaStep !== 3;
-  document.getElementById('pagoCard').hidden = cajaStep !== 3;
 }
 
 function resetCart() {
@@ -1261,24 +1249,61 @@ async function renderInventory() {
       '<div class="hint">Vendidos de por vida: ' + item.vendidos + ' de ' + item.stock_total + ' · Adentro ahora: ' + adentro + '</div>' +
       '<div class="hint" style="color:var(--text);font-weight:700">Restantes para mañana: <strong>' + disp + '</strong></div>' +
       '<div class="hint">Prefijo <strong>' + prefijo + '</strong> · Próximo folio: <strong>' + proximoFolio + '</strong></div>' +
-      '<div style="display:flex;gap:8px;margin-top:4px">' +
-        '<input type="number" min="1" step="1" placeholder="+100" id="recarga-' + item.color + '" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px" />' +
-        '<button class="small-btn" onclick="recargarStock(\'' + item.color + '\')">Recargar</button>' +
+      (item.ultima_recarga
+        ? '<div class="hint" style="background:var(--brand-soft);border-radius:8px;padding:5px 8px;margin-top:4px">' +
+            'Última recarga: folios <strong>' + item.ultima_recarga.folio_inicio + '</strong> al <strong>' + item.ultima_recarga.folio_fin + '</strong>' +
+            ' (' + item.ultima_recarga.cantidad + ' pzas.) · ' + fmtDate(item.ultima_recarga.timestamp) +
+          '</div>'
+        : '') +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">' +
+        '<div>' +
+          '<label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px">Folio inicio</label>' +
+          '<input type="number" min="1" step="1" placeholder="001" id="folio-inicio-' + item.color + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px" oninput="calcRecarga(\'' + item.color + '\')" />' +
+        '</div>' +
+        '<div>' +
+          '<label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px">Folio fin</label>' +
+          '<input type="number" min="1" step="1" placeholder="100" id="folio-fin-' + item.color + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px" oninput="calcRecarga(\'' + item.color + '\')" />' +
+        '</div>' +
       '</div>' +
+      '<div id="recarga-calc-' + item.color + '" style="font-size:12px;min-height:16px;margin-top:3px"></div>' +
+      '<button class="small-btn" style="margin-top:6px;width:100%" onclick="recargarStock(\'' + item.color + '\')">Recargar</button>' +
     '</div>';
   }).join('');
 }
 
+function calcRecarga(color) {
+  const inicio = Number(document.getElementById('folio-inicio-' + color)?.value);
+  const fin = Number(document.getElementById('folio-fin-' + color)?.value);
+  const el = document.getElementById('recarga-calc-' + color);
+  if (!el) return;
+  if (inicio && fin && fin >= inicio) {
+    const n = fin - inicio + 1;
+    el.textContent = '= ' + n + ' brazalete' + (n !== 1 ? 's' : '') + ' a agregar';
+    el.style.color = 'var(--brand-dark)';
+  } else if (inicio && fin && fin < inicio) {
+    el.textContent = 'El folio fin debe ser mayor o igual al inicio';
+    el.style.color = 'var(--danger)';
+  } else {
+    el.textContent = '';
+  }
+}
+
 async function recargarStock(color) {
-  const input = document.getElementById('recarga-' + color);
-  const cantidad = Number(input?.value);
-  if (!cantidad || cantidad <= 0) { input?.focus(); return; }
-  if (!confirm('¿Agregar ' + cantidad + ' brazaletes ' + color + ' al inventario físico?')) return;
+  const inicio = Number(document.getElementById('folio-inicio-' + color)?.value);
+  const fin = Number(document.getElementById('folio-fin-' + color)?.value);
+  if (!inicio) { document.getElementById('folio-inicio-' + color)?.focus(); return; }
+  if (!fin) { document.getElementById('folio-fin-' + color)?.focus(); return; }
+  if (fin < inicio) { alert('El folio fin debe ser mayor o igual al folio inicio.'); return; }
+  const cantidad = fin - inicio + 1;
+  if (!confirm('¿Agregar ' + cantidad + ' brazaletes ' + color + ' (folios ' + inicio + ' al ' + fin + ') al inventario?')) return;
   try {
     await api('/api/caja/inventario/recargar', {
       method: 'POST',
-      body: JSON.stringify({ color, cantidad })
+      body: JSON.stringify({ color, folio_inicio: inicio, folio_fin: fin })
     });
+    document.getElementById('folio-inicio-' + color).value = '';
+    document.getElementById('folio-fin-' + color).value = '';
+    document.getElementById('recarga-calc-' + color).textContent = '';
     await loadCatalog();
     await renderInventory();
   } catch (e) {
@@ -1359,6 +1384,16 @@ async function renderCorte() {
 
 function statCardHtml(eyebrow, value) {
   return '<div class="stat-card"><span class="eyebrow">' + eyebrow + '</span><div class="stat-value">' + value + '</div></div>';
+}
+
+async function renderDepositos() {
+  if (!turno) return;
+  try {
+    const corte = await api('/api/caja/corte');
+    renderCajaMovs(corte.movimientos_caja);
+  } catch (e) {
+    console.error('Error al cargar depósitos:', e);
+  }
 }
 
 function renderCorteCierre() {

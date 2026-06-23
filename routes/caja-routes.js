@@ -118,7 +118,9 @@ function createCajaRouter(repository, opciones = {}) {
     try {
       const result = await repository.recargarStock({
         color: req.body?.color,
-        cantidad: req.body?.cantidad
+        folio_inicio: req.body?.folio_inicio,
+        folio_fin: req.body?.folio_fin,
+        operador: req.body?.operador
       });
       res.status(201).json({ success: true, ...result });
     } catch (error) {
