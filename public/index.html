@@ -153,6 +153,26 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .cierre-grid .row.diff strong.warn{color:var(--warn)}
 .cierre-grid .row.diff strong.err{color:var(--danger)}
 @media(max-width:860px){.cierre-grid{grid-template-columns:1fr}.corte-stats{grid-template-columns:repeat(2,1fr)}}
+.declarado-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.declarado-methods{display:flex;flex-direction:column;gap:8px}
+.declarado-method{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface-soft);border-radius:12px;padding:11px 13px;cursor:pointer;font-weight:700;font-size:13px;text-align:left}
+.declarado-method span.amt{font-weight:900;color:var(--ink-soft)}
+.declarado-method.active{background:var(--brand-soft);border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.declarado-method.active span.amt{color:var(--brand-dark)}
+.declarado-keypad{display:flex;flex-direction:column;gap:10px}
+.declarado-display{background:var(--surface-soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:24px;font-weight:900;text-align:right;font-family:Georgia,serif}
+.declarado-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.declarado-keys button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:14px 0;font-size:17px;font-weight:800;cursor:pointer}
+.declarado-keys button:hover{background:var(--surface-soft)}
+.declarado-keys .key-back{color:var(--danger)}
+.key-enter{width:100%;border:0;background:var(--brand);color:white;border-radius:12px;padding:13px;font-weight:900;font-size:15px;cursor:pointer}
+.key-enter:hover{background:var(--brand-dark)}
+.declarado-list{grid-column:1 / -1;overflow:auto}
+.declarado-list table td,.declarado-list table th{font-size:13px}
+.declarado-list td.ok{color:var(--brand-dark);font-weight:800}
+.declarado-list td.warn{color:var(--warn);font-weight:800}
+.declarado-list td.err{color:var(--danger);font-weight:800}
+@media(max-width:860px){.declarado-panel{grid-template-columns:1fr}}
 .add-user-toggle{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);overflow:hidden}
 .add-user-toggle>summary{list-style:none;cursor:pointer;padding:11px 14px;font-weight:900;font-size:13px;color:var(--brand-dark);display:flex;justify-content:space-between;align-items:center;user-select:none}
 .add-user-toggle>summary::-webkit-details-marker{display:none}
@@ -459,22 +479,40 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
         <!-- ── Paso 2 · Cierre ───────────────────────────────────────────── -->
         <section id="corteStepCierre" hidden>
           <div class="card">
-            <span class="eyebrow">Cierre</span><h2>Resumen de cierre</h2>
-            <p class="hint">Cuenta el efectivo de la caja y captura el total. Si recibes dólares físicos, anótalos en USD para que se comparen con lo esperado.</p>
-            <div class="control-field" style="margin-top:10px">
-              <label for="efectivoContadoMxn">Efectivo contado MXN</label>
-              <input id="efectivoContadoMxn" type="number" min="0" step="1" placeholder="0" oninput="renderCorteCierre()" />
+            <span class="eyebrow">Cierre</span><h2>Importes declarados para el cierre de caja</h2>
+            <p class="hint">Elige un método, captura el importe contado con el teclado y oprime ENTER. Efectivo y dólares se comparan contra lo esperado del turno.</p>
+
+            <div class="declarado-panel">
+              <div class="declarado-methods" id="declaradoMethods"></div>
+              <div class="declarado-keypad">
+                <div class="declarado-display" id="declaradoDisplay">0</div>
+                <div class="declarado-keys">
+                  <button type="button" onclick="declaradoDigit('7')">7</button>
+                  <button type="button" onclick="declaradoDigit('8')">8</button>
+                  <button type="button" onclick="declaradoDigit('9')">9</button>
+                  <button type="button" onclick="declaradoDigit('4')">4</button>
+                  <button type="button" onclick="declaradoDigit('5')">5</button>
+                  <button type="button" onclick="declaradoDigit('6')">6</button>
+                  <button type="button" onclick="declaradoDigit('1')">1</button>
+                  <button type="button" onclick="declaradoDigit('2')">2</button>
+                  <button type="button" onclick="declaradoDigit('3')">3</button>
+                  <button type="button" onclick="declaradoDigit('0')">0</button>
+                  <button type="button" onclick="declaradoDigit('.')">.</button>
+                  <button type="button" class="key-back" onclick="declaradoBack()">←</button>
+                </div>
+                <button type="button" class="key-enter" onclick="declaradoEnter()">ENTER</button>
+              </div>
+              <div class="declarado-list" id="declaradoList"></div>
             </div>
-            <div class="control-field">
-              <label for="efectivoContadoUsd">Dólares contados (USD físicos, opcional)</label>
-              <input id="efectivoContadoUsd" type="number" min="0" step="0.01" placeholder="0" oninput="renderCorteCierre()" />
-            </div>
+
             <div id="corteCierre" style="margin-top:14px"></div>
             <div class="control-field" style="margin-top:14px">
               <label for="fondoSiguiente">Fondo a dejar para el siguiente turno (MXN)</label>
               <input id="fondoSiguiente" type="number" min="0" step="1" placeholder="0" oninput="renderCorteCierre()" />
             </div>
             <div class="mini-item" style="margin-top:10px"><span>Efectivo a retirar / entregar al supervisor</span><strong id="efectivoRetirar">—</strong></div>
+            <input id="efectivoContadoMxn" type="hidden" />
+            <input id="efectivoContadoUsd" type="hidden" />
           </div>
 
           <div class="corte-actions" style="margin-top:18px">
@@ -550,8 +588,18 @@ const COLOR_STYLES = {
 const TIPO_LABELS = { adulto: 'Adulto', 'niño': 'Niño', local: 'Local' };
 const PAYMENT_LABELS = {
   efectivo: 'Efectivo', visa: 'Visa', mastercard: 'Mastercard',
-  credito: 'Crédito', dolar: 'Dólar', transferencia: 'Transferencia', cortesia: 'Cortesía'
+  credito: 'Crédito', dolar: 'Dólar', transferencia: 'Transferencia', cortesia: 'Cortesía',
+  amex: 'American Express', vales: 'Vales'
 };
+const DECLARADO_METODOS = [
+  { key: 'efectivo', clave: 'EF' },
+  { key: 'visa', clave: 'VISA' },
+  { key: 'mastercard', clave: 'MC' },
+  { key: 'amex', clave: 'AMEX' },
+  { key: 'credito', clave: 'CR' },
+  { key: 'dolar', clave: 'DLL' },
+  { key: 'vales', clave: 'VAL' }
+];
 const PAYMENTS = Object.keys(PAYMENT_LABELS).map((id) => ({ id, label: PAYMENT_LABELS[id] }));
 const SESSION_KEY = 'kaan_luum_session';
 
@@ -567,6 +615,9 @@ let lastTicket = null;
 let lastCorte = null;
 let cajaMovTipo = 'deposito';
 let corteStep = 1;
+let declaradoValues = {};
+let declaradoActivo = 'efectivo';
+let declaradoBuffer = '0';
 
 const money = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n || 0);
 const moneyUsd = (n) => '$' + (n || 0).toFixed(2) + ' USD';
@@ -849,6 +900,9 @@ async function cerrarTurno() {
     document.getElementById('efectivoContadoMxn').value = '';
     document.getElementById('efectivoContadoUsd').value = '';
     document.getElementById('fondoSiguiente').value = '';
+    declaradoValues = {};
+    declaradoActivo = 'efectivo';
+    declaradoBuffer = '0';
     turno = null;
     resetCart();
     await checkShift();
@@ -1379,6 +1433,69 @@ async function renderCorte() {
     : '<div class="empty">Sin brazaletes vendidos en este turno.</div>';
 
   renderCajaMovs(corte.movimientos_caja);
+  declaradoValues = {};
+  DECLARADO_METODOS.forEach((m) => { declaradoValues[m.key] = 0; });
+  declaradoActivo = 'efectivo';
+  declaradoBuffer = '0';
+  renderDeclaradoMethods();
+  renderCorteCierre();
+}
+
+function declaradoEsperado(metodo) {
+  if (!lastCorte) return 0;
+  if (metodo === 'efectivo') return lastCorte.efectivo_esperado || 0;
+  if (metodo === 'dolar') return lastCorte.usd_esperado || 0;
+  return (lastCorte.por_metodo && lastCorte.por_metodo[metodo] && lastCorte.por_metodo[metodo].mxn) || 0;
+}
+
+function renderDeclaradoMethods() {
+  const el = document.getElementById('declaradoMethods');
+  if (!el) return;
+  el.innerHTML = DECLARADO_METODOS.map((m) => {
+    const valor = declaradoValues[m.key] || 0;
+    const texto = m.key === 'dolar' ? moneyUsd(valor) : money(valor);
+    return '<button type="button" class="declarado-method' + (m.key === declaradoActivo ? ' active' : '') +
+      '" onclick="declaradoSelect(\'' + m.key + '\')"><span>' + m.clave + ' · ' + paymentLabel(m.key) +
+      '</span><span class="amt">' + texto + '</span></button>';
+  }).join('');
+  const display = document.getElementById('declaradoDisplay');
+  if (display) display.textContent = declaradoBuffer;
+}
+
+function declaradoSelect(key) {
+  declaradoActivo = key;
+  declaradoBuffer = String(declaradoValues[key] || 0);
+  renderDeclaradoMethods();
+}
+
+function declaradoDigit(d) {
+  if (d === '.' && declaradoBuffer.includes('.')) return;
+  if (declaradoBuffer === '0' && d !== '.') declaradoBuffer = d;
+  else declaradoBuffer += d;
+  const display = document.getElementById('declaradoDisplay');
+  if (display) display.textContent = declaradoBuffer;
+}
+
+function declaradoBack() {
+  declaradoBuffer = declaradoBuffer.slice(0, -1);
+  if (declaradoBuffer === '' || declaradoBuffer === '-') declaradoBuffer = '0';
+  const display = document.getElementById('declaradoDisplay');
+  if (display) display.textContent = declaradoBuffer;
+}
+
+function declaradoEnter() {
+  declaradoValues[declaradoActivo] = Math.max(0, Number(declaradoBuffer) || 0);
+  if (declaradoActivo === 'efectivo') {
+    document.getElementById('efectivoContadoMxn').value = declaradoValues.efectivo;
+  }
+  if (declaradoActivo === 'dolar') {
+    document.getElementById('efectivoContadoUsd').value = declaradoValues.dolar;
+  }
+  const idx = DECLARADO_METODOS.findIndex((m) => m.key === declaradoActivo);
+  const next = DECLARADO_METODOS[(idx + 1) % DECLARADO_METODOS.length];
+  declaradoActivo = next.key;
+  declaradoBuffer = String(declaradoValues[next.key] || 0);
+  renderDeclaradoMethods();
   renderCorteCierre();
 }
 
@@ -1421,6 +1538,21 @@ function renderCorteCierre() {
     '</div>';
 
   document.getElementById('efectivoRetirar').textContent = money(retirar);
+
+  const listEl = document.getElementById('declaradoList');
+  if (listEl) {
+    listEl.innerHTML = '<table class="table"><thead><tr><th>Clave</th><th>Descripción</th><th>Esperado</th><th>Declarado</th><th>Diferencia</th></tr></thead><tbody>' +
+      DECLARADO_METODOS.map((m) => {
+        const esperado = declaradoEsperado(m.key);
+        const declarado = declaradoValues[m.key] || 0;
+        const diff = declarado - esperado;
+        const fmt = m.key === 'dolar' ? moneyUsd : money;
+        return '<tr' + (m.key === declaradoActivo ? ' style="background:var(--brand-soft)"' : '') + '>' +
+          '<td>' + m.clave + '</td><td>' + paymentLabel(m.key) + '</td><td>' + fmt(esperado) + '</td><td>' + fmt(declarado) +
+          '</td><td class="' + diffClass(diff) + '">' + (diff > 0 ? '+' : '') + fmt(diff) + '</td></tr>';
+      }).join('') +
+    '</tbody></table>';
+  }
 }
 
 function setCajaMovTipo(tipo) {
