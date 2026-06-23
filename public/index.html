@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#085744" />
+<title>Kaan Luum · Punto de Venta</title>
+<style>
+:root{
+  --bg:#f1f3ee; --surface:#fff; --surface-soft:#f7f8f4; --ink:#1c2420; --ink-soft:#6f7c74;
+  --line:#dfe5dc; --brand:#229b74; --brand-dark:#11664f; --brand-soft:#e4f4ee;
+  --warn:#a46510; --warn-soft:#fff3df; --danger:#a92f2f; --danger-soft:#fdeeee;
+  --info:#1d5f9b; --info-soft:#e8f1fb;
+  --radius-lg:18px; --radius-md:13px; --shadow:0 1px 2px rgba(20,30,25,.04),0 16px 34px -24px rgba(20,30,25,.28);
+  /* Ancho del rollo térmico instalado. Cambia a 58mm si tu impresora usa rollo angosto. */
+  --receipt-width:80mm;
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+html{touch-action:manipulation}
+button{touch-action:manipulation}
+body{background:radial-gradient(circle at 85% 0%,#dff1eb 0%,rgba(223,241,235,.15) 28%,transparent 45%),var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif;margin:0;letter-spacing:-.02em}
+button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.eyebrow{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-dark);font-weight:800;margin-bottom:6px}
+.hint{font-size:13px;color:var(--ink-soft);margin:5px 0 0}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}
+.app.sidebar-collapsed{grid-template-columns:0 1fr}
+.app.sidebar-collapsed .sidebar{opacity:0;pointer-events:none}
+.sidebar{transition:opacity .15s ease;overflow:hidden}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:4px;width:36px;height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;cursor:pointer;padding:0;flex-shrink:0}
+.hamburger span{display:block;width:16px;height:2px;margin:0 auto;background:var(--ink);border-radius:2px}
+.resumen-nav-buttons{display:flex;gap:10px;margin-top:18px}
+.resumen-nav-buttons[hidden]{display:none}
+.sidebar{background:#085744;color:#eafff7;padding:24px 14px;border-right:1px solid rgba(255,255,255,.12)}
+.logo{display:flex;gap:10px;align-items:center;padding:0 8px 24px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.14)}
+.logo-mark{width:34px;height:34px;border:1px solid rgba(255,255,255,.45);border-radius:999px;display:grid;place-items:center}
+.logo h2{font-size:19px;color:white}
+.logo span{font-size:10px;letter-spacing:.15em;text-transform:uppercase;opacity:.75}
+.nav{display:flex;flex-direction:column;gap:8px}
+.nav button{color:#eafff7;padding:13px 14px;border-radius:12px;font-weight:700;font-size:13px;background:transparent;border:0;cursor:pointer;text-align:left;opacity:.78;width:100%}
+.nav button.active,.nav button:hover{opacity:1;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.nav button[hidden]{display:none}
+.sidebar-status{margin-top:auto;padding:10px 14px 2px;font-size:12px;color:#eafff7;opacity:.8;line-height:1.7;border-top:1px solid rgba(255,255,255,.14)}
+.nav .logout{margin-top:8px;color:#ff9e9e;opacity:1}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:30px 34px 20px}
+.topbar h1{font-size:42px}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:13px;box-shadow:var(--shadow)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.dot.offline{background:var(--danger)}
+.btn-pill{border:1px solid #a5d4c4;background:#e8f6f1;color:var(--brand-dark);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer}
+.page{display:none}.page.active{display:block}
+.page-wrap{max-width:1380px;margin:0 auto;padding:0 34px 52px}
+.layout{display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
+#cajaStepSeleccion{max-width:820px;margin:0 auto;width:100%}
+#cajaAside{max-width:480px;margin:0 auto;width:100%}
+#cajaAside.wizard-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;align-items:start}
+.wizard-progress{display:flex;gap:10px;margin-bottom:18px}
+.wizard-step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);font-weight:800;font-size:13px;cursor:pointer;user-select:none}
+.wizard-step-num{width:22px;height:22px;border-radius:50%;background:var(--surface-soft);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.wizard-step.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark)}
+.wizard-step.active .wizard-step-num{background:var(--brand);border-color:var(--brand);color:white}
+.wizard-step.done{color:var(--brand-dark)}
+.wizard-step.done .wizard-step-num{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark)}
+.section-head{margin:8px 0 14px}
+.section-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.ticket-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.ticket-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:17px 18px 17px 24px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.ticket-card:before{content:'';position:absolute;left:0;top:15px;bottom:15px;width:5px;border-radius:5px;background:var(--accent)}
+.ticket-card.active{background:var(--accent-soft);border-color:var(--accent)}
+.code{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:900}
+.ticket-card h3{font-size:19px;margin:2px 0 4px}
+.price{font-size:13px;color:var(--ink-soft)}
+.stepper{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.stepper button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface-soft);font-size:17px;font-weight:800;cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.qty{min-width:28px;text-align:center;font-weight:900}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:22px}
+.card h2{font-size:27px}
+.sub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.segmented{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.segmented button{padding:10px;border:1px solid var(--line);background:var(--surface-soft);border-radius:10px;font-weight:900;cursor:pointer;color:var(--ink-soft);font-size:12px}
+.segmented button.active{background:var(--brand);border-color:var(--brand);color:white}
+.field-label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:17px 0 8px}
+.control-field{margin-top:11px}
+.control-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px}
+.control-field input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface-soft)}
+.btn-primary{width:100%;margin-top:18px;background:var(--brand);color:white;border:none;border-radius:13px;padding:16px 18px;font-weight:900;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:15px}
+.btn-primary:hover:not(:disabled){background:var(--brand-dark)}
+.btn-primary:disabled{background:var(--line);color:var(--ink-soft);cursor:not-allowed}
+.btn-secondary{width:100%;margin-top:14px;background:var(--surface-soft);border:1px solid var(--line);border-radius:13px;padding:13px;font-weight:900;cursor:pointer}
+.btn-danger{background:var(--danger)}
+.cart-line{border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:var(--surface-soft);margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.totals{border-top:1px solid var(--line);padding-top:14px;margin-top:12px}
+.total-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+.total-row.big{font-family:Georgia,serif;font-weight:900;font-size:30px;color:var(--ink)}
+.total-row.big span:last-child{color:var(--brand-dark)}
+.hint-line{font-size:12px;color:var(--danger);text-align:center;margin:8px 0 0;min-height:16px}
+.empty{border:1px dashed var(--line);border-radius:var(--radius-md);color:var(--ink-soft);text-align:center;padding:18px 10px;font-size:13px}
+.warning{background:var(--warn-soft);border:1px solid #f1cf95;color:var(--warn);border-radius:12px;padding:10px 12px;font-size:12px;margin-top:12px}
+.result-card{margin-top:14px}
+.result-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.result-total{font-family:Georgia,serif;color:var(--brand-dark);font-size:29px;font-weight:900}
+.folio-card{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:10px;background:var(--surface-soft)}
+.folio-code{font-family:'JetBrains Mono','SF Mono',monospace;font-weight:900;color:var(--brand-dark);font-size:15px;background:var(--brand-soft);border-radius:9px;padding:6px 9px}
+.panel-action{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.small-btn{border:1px solid var(--line);background:var(--surface-soft);border-radius:10px;padding:10px 12px;font-weight:900;cursor:pointer}
+.small-btn.primary{background:var(--brand);border-color:var(--brand);color:white}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;place-items:center;z-index:200;backdrop-filter:blur(4px)}
+.overlay.active{display:grid}
+.modal{background:var(--surface);padding:32px;border-radius:var(--radius-lg);width:100%;max-width:420px;box-shadow:var(--shadow)}
+.modal input,.modal select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:8px 0 16px;font-size:16px}
+.modal h2{font-size:26px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow)}
+.stat-value{font-family:Georgia,serif;font-size:32px;font-weight:900;margin-top:10px}
+.mini-item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface-soft);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px}
+.dash-top{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.dash-row{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.aforo-card .aforo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.aforo-num{font-family:Georgia,serif;font-size:48px;font-weight:900;color:var(--ink);line-height:1;margin-top:4px}
+.aforo-max{color:var(--ink-soft);font-size:24px;font-weight:700}
+.aforo-badge{font-weight:900;font-size:14px;padding:7px 14px;border-radius:999px;background:var(--brand-soft);color:var(--brand-dark)}
+.aforo-badge.warn{background:var(--warn-soft);color:var(--warn)}
+.aforo-badge.err{background:var(--danger-soft);color:var(--danger)}
+.aforo-bar{height:14px;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:14px}
+.aforo-bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-dark));transition:width .35s ease;border-radius:999px}
+.aforo-bar-fill.warn{background:linear-gradient(90deg,#f0c075,var(--warn))}
+.aforo-bar-fill.err{background:linear-gradient(90deg,#e88a8a,var(--danger))}
+.last-sale-card{display:flex;flex-direction:column;justify-content:center}
+.last-sale-time{font-family:Georgia,serif;font-size:32px;font-weight:900;color:var(--brand-dark);margin-top:4px}
+.mix-row{display:grid;grid-template-columns:120px 1fr 110px;align-items:center;gap:12px;margin-bottom:10px;font-size:13px}
+.mix-row .mix-label{font-weight:800}
+.mix-bar{height:12px;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.mix-bar-fill{height:100%;background:var(--brand);transition:width .3s ease}
+.mix-bar-fill.dolar{background:#4caf7e}
+.mix-bar-fill.visa,.mix-bar-fill.mastercard,.mix-bar-fill.credito{background:#5e93b8}
+.mix-bar-fill.transferencia{background:#a378c8}
+.mix-bar-fill.cortesia{background:#d9785a}
+.mix-amount{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.stock-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;font-weight:800;font-size:13px;margin:0 6px 6px 0;cursor:pointer;border:1px solid;background:var(--surface)}
+.stock-chip.zero{background:var(--danger-soft);color:var(--danger);border-color:#e88a8a}
+.stock-chip.low{background:var(--warn-soft);color:var(--warn);border-color:#f0c075}
+@media(max-width:860px){.dash-top,.dash-row{grid-template-columns:1fr}}
+.corte-stats{grid-template-columns:repeat(4,1fr);margin-bottom:0}
+.corte-stats .stat-card{padding:14px}
+.corte-stats .stat-value{font-size:22px;margin-top:4px}
+.corte-stats .eyebrow{font-size:10px}
+.cierre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 16px}
+.cierre-grid .row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:7px 0;font-size:14px}
+.cierre-grid .row strong{color:var(--ink)}
+.cierre-grid .row.diff strong.ok{color:var(--brand-dark)}
+.cierre-grid .row.diff strong.warn{color:var(--warn)}
+.cierre-grid .row.diff strong.err{color:var(--danger)}
+@media(max-width:860px){.cierre-grid{grid-template-columns:1fr}.corte-stats{grid-template-columns:repeat(2,1fr)}}
+.add-user-toggle{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);overflow:hidden}
+.add-user-toggle>summary{list-style:none;cursor:pointer;padding:11px 14px;font-weight:900;font-size:13px;color:var(--brand-dark);display:flex;justify-content:space-between;align-items:center;user-select:none}
+.add-user-toggle>summary::-webkit-details-marker{display:none}
+.add-user-toggle>summary .chev{transition:transform .15s ease;font-size:12px;color:var(--ink-soft)}
+.add-user-toggle[open]>summary{border-bottom:1px solid var(--line);background:var(--surface)}
+.add-user-toggle[open]>summary .chev{transform:rotate(180deg)}
+.add-user-body{padding:14px 14px 16px;background:var(--surface)}
+.add-user-body .control-field:first-of-type{margin-top:6px}
+.mini-item.col{flex-direction:column;align-items:stretch}
+.badge{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900}
+.badge.ok{background:var(--brand-soft);color:var(--brand-dark)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.err{background:var(--danger-soft);color:var(--danger)}
+.scan-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:24px}
+.scan-input{font-size:24px;font-family:'JetBrains Mono',ui-monospace,monospace;width:100%;border:1px dashed #85c9b2;border-radius:14px;padding:20px 18px;background:#fbfffd}
+.entry-result{margin-top:16px;border-radius:14px;padding:14px;border:1px solid var(--line);background:var(--surface-soft)}
+.entry-result.ok{border-color:#99d6c2;background:var(--brand-soft)}
+.entry-result.err{border-color:#f0aaaa;background:var(--danger-soft)}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+.table th{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.1em}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.corte-box{max-width:560px;margin:0 auto}
+.corte-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.print-only{display:none}
+@media print{
+  .no-print{display:none !important}
+  body{background:white}
+  .print-only{display:block;width:var(--receipt-width);margin:0 auto;font-family:'Courier New',monospace;font-size:11px;color:#000}
+  .print-header{text-align:center;margin-bottom:10px;border-bottom:1px dashed #000;padding-bottom:10px}
+  .print-header h1{font-size:16px;margin:0 0 4px;font-family:Georgia,serif}
+  .print-row{display:flex;justify-content:space-between;margin-bottom:3px}
+  .print-line{border-top:1px dashed #000;margin:8px 0}
+  .print-total{font-size:14px;font-weight:bold;margin-top:8px}
+  @page{margin:4mm}
+}
+/* Terminal touch de referencia: 1024x768 (Unopc T630). El sidebar se mantiene visible
+   hasta 860px de ancho para no perder la navegación en esa resolución. */
+@media(max-width:860px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:720px){.topbar{padding:22px 18px}.page-wrap{padding:0 18px 40px}.ticket-grid,.stat-grid,.inventory-grid,.layout{grid-template-columns:1fr}.segmented{grid-template-columns:1fr}}
+/* Pantallas cortas (768px de alto en la terminal touch): reduce paddings/tamaños para
+   que la Caja quepa con menos scroll. */
+@media(max-height:800px){
+  .topbar{padding:16px 24px 12px}
+  .topbar h1{font-size:30px}
+  .page-wrap{padding:0 24px 30px}
+  .card{padding:16px}
+  .sidebar{padding:16px 12px}
+  .ticket-card{padding:12px 14px 12px 18px}
+  .ticket-card h3{font-size:16px;margin:1px 0 2px}
+}
+</style>
+</head>
+<body>
+<div id="printTicket" class="print-only"></div>
+
+<div id="loginOverlay" class="overlay active">
+  <div class="modal">
+    <h2>Acceso Kaan Luum</h2>
+    <p class="eyebrow" style="margin-top:8px">Punto de Venta</p>
+    <label style="font-size:13px;font-weight:bold">Usuario</label>
+    <select id="loginUser">
+      <option value="admin">Administrador</option>
+      <option value="cajera">Cajera</option>
+    </select>
+    <label style="font-size:13px;font-weight:bold">PIN</label>
+    <input id="loginPin" type="password" placeholder="****" autocomplete="off" />
+    <p id="loginErr" style="color:var(--danger);font-size:13px;display:none">Credenciales incorrectas.</p>
+    <button class="btn-primary" onclick="doLogin()"><span>Ingresar</span><span>→</span></button>
+  </div>
+</div>
+
+<div id="shiftOverlay" class="overlay">
+  <div class="modal">
+    <h2>Apertura de Caja</h2>
+    <p class="hint" style="margin-top:8px">La caja permanece bloqueada hasta registrar el fondo inicial en efectivo.</p>
+    <label style="font-size:13px;font-weight:bold">Fondo inicial (MXN)</label>
+    <input id="fondoInput" type="number" min="0" step="1" placeholder="1000" />
+    <label style="font-size:13px;font-weight:bold;margin-top:12px">Tipo de cambio (1 USD = ? MXN)</label>
+    <input id="usdRateAperturaInput" type="number" min="1" step="0.5" placeholder="18" />
+    <p id="shiftErr" style="color:var(--danger);font-size:13px;display:none"></p>
+    <button class="btn-primary" onclick="abrirTurno()"><span>Abrir turno</span><span>✓</span></button>
+  </div>
+</div>
+
+<div id="exitOverlay" class="overlay">
+  <div class="modal">
+    <h2>Salir del sistema</h2>
+    <p class="hint" style="margin-top:8px">Esto cerrará el punto de venta. Ingresa el PIN de administrador para confirmar.</p>
+    <label style="font-size:13px;font-weight:bold">PIN de administrador</label>
+    <input id="exitPin" type="password" placeholder="****" autocomplete="off" inputmode="numeric" />
+    <p id="exitErr" style="color:var(--danger);font-size:13px;display:none"></p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="margin-top:0;flex:1" onclick="cerrarExitModal()">Cancelar</button>
+      <button class="btn-primary btn-danger" style="margin-top:0;flex:1" onclick="confirmarSalir()"><span>Salir</span><span>⏻</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="app no-print" id="appShell">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><div class="logo-mark">≋</div><div><h2>Kaan Luum</h2><span>Punto de venta</span></div></div>
+    <nav class="nav">
+      <button class="nav-btn admin-only" data-page="dashboard"><span>Panel</span></button>
+      <button class="nav-btn active" data-page="caja"><span>Caja</span></button>
+      <button class="nav-btn admin-only" data-page="inventario"><span>Inventario</span></button>
+      <button class="nav-btn admin-only" data-page="corte"><span>Corte</span></button>
+      <button class="nav-btn admin-only" data-page="historial"><span>Historial</span></button>
+      <button class="nav-btn admin-only" data-page="usuarios"><span>Usuarios</span></button>
+      <div class="sidebar-status">
+        <div id="sidebarUser">—</div>
+        <div id="sidebarTurno">Turno cerrado</div>
+      </div>
+      <button class="logout" onclick="logout()">Cerrar sesión</button>
+      <button class="logout" id="btnSalir" onclick="pedirSalir()" style="color:#ffd0d0">⏻ Salir / Apagar</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
+          <span></span><span></span><span></span>
+        </button>
+        <div><span class="eyebrow">Laguna de Kaan Luum</span><h1 id="pageTitle">Caja</h1></div>
+      </div>
+    </header>
+
+    <section class="page admin-only" id="page-dashboard">
+      <div class="page-wrap">
+
+        <div class="dash-top">
+          <div class="card aforo-card">
+            <div class="aforo-head">
+              <div>
+                <span class="eyebrow">Aforo en vivo</span>
+                <div class="aforo-num"><strong id="dashAforoNow">0</strong><span class="aforo-max"> / <span id="dashAforoMax">50</span></span></div>
+              </div>
+              <div class="aforo-badge" id="dashAforoBadge">0%</div>
+            </div>
+            <div class="aforo-bar"><div class="aforo-bar-fill" id="dashAforoBar"></div></div>
+            <div class="hint" id="dashAforoHint">Personas dentro de la laguna ahora mismo.</div>
+          </div>
+
+          <div class="card last-sale-card">
+            <span class="eyebrow">Última venta</span>
+            <div class="last-sale-time" id="dashLastSale">—</div>
+            <div class="hint" id="dashLastSaleAbs">Sin ventas todavía en este turno.</div>
+            <div class="hint" id="dashShiftInfo" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div class="stat-grid corte-stats" id="dashStats" style="margin-top:16px"></div>
+
+        <div class="dash-row" style="margin-top:16px">
+          <div class="card">
+            <span class="eyebrow">Mix de pagos del turno</span><h2>Cómo está entrando el dinero</h2>
+            <p class="hint">Lo que verás reflejado en el arqueo. Si algún canal se dispara, conviene tenerlo a la vista.</p>
+            <div id="dashMixPagos" style="margin-top:14px"></div>
+          </div>
+          <div class="card">
+            <span class="eyebrow">Alertas de inventario</span><h2>Stock bajo</h2>
+            <p class="hint">Colores con menos de 20 brazaletes disponibles. Recarga antes de agotar.</p>
+            <div id="dashStockAlertas" style="margin-top:14px"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="page active" id="page-caja">
+      <div class="page-wrap">
+        <div class="wizard-progress no-print" id="wizardProgress">
+          <div class="wizard-step active" data-step="1"><span class="wizard-step-num">1</span>Selección</div>
+          <div class="wizard-step" data-step="2"><span class="wizard-step-num">2</span>Resumen</div>
+          <div class="wizard-step" data-step="3"><span class="wizard-step-num">3</span>Pago</div>
+        </div>
+        <main class="layout" id="cajaLayout">
+          <section id="cajaStepSeleccion">
+            <div class="section-head">
+              <div class="section-row">
+                <div><span class="eyebrow">Punto de venta</span><h2>Brazaletes</h2></div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div class="pill"><strong id="topAdentro">0</strong> adentro</div>
+                  <button class="btn-pill" onclick="resetCart()">Limpiar</button>
+                </div>
+              </div>
+              <p class="hint">Venta exclusiva de brazaletes. Cada visitante genera un folio individual.</p>
+            </div>
+            <div class="ticket-grid" id="ticketGrid"></div>
+            <button class="btn-primary" id="wizardNextBtn" onclick="wizardGoTo(2)" disabled><span>Siguiente</span><span>→</span></button>
+          </section>
+          <aside id="cajaAside" hidden>
+            <div class="card" id="resumenCard">
+              <span class="eyebrow">Resumen</span><h2>Kaan Luum</h2>
+              <p class="sub" id="visitorSummary">Selecciona brazaletes.</p>
+              <div id="cartItems" style="margin:16px 0;min-height:80px"></div>
+              <div class="totals">
+                <div class="total-row big"><span>Total MXN</span><span id="cartTotal">$0</span></div>
+                <div class="total-row"><span>Equivalente USD</span><span id="cartTotalUsd">$0.00</span></div>
+              </div>
+              <div id="resumenNavButtons" class="resumen-nav-buttons">
+                <button class="btn-secondary" style="margin:0;flex:1" onclick="wizardGoTo(1)">Regresar</button>
+                <button class="btn-primary" style="margin:0;flex:1" onclick="wizardGoTo(3)"><span>Continuar al pago</span><span>→</span></button>
+              </div>
+              <button class="btn-secondary" id="volverAlResumenBtn" hidden onclick="wizardGoTo(2)">Regresar al resumen</button>
+            </div>
+            <div class="card" id="pagoCard" hidden>
+              <span class="eyebrow">Pago</span><h2>Método de pago</h2>
+              <div class="segmented" id="paymentMethods"></div>
+              <div id="paymentLinesList" style="margin-top:14px"></div>
+              <div id="courtesyControls" hidden>
+                <div class="control-field"><label for="motivoInput">Motivo de cortesía</label><input id="motivoInput" placeholder="Ej. invitación de gerencia" /></div>
+                <div class="control-field"><label for="authInput">Autorizado por</label><input id="authInput" placeholder="Nombre del responsable" /></div>
+              </div>
+              <button class="btn-primary" id="confirmBtn" onclick="confirmSale()" disabled><span>Cobrar y generar folios</span><span id="confirmTotal">$0</span></button>
+              <p class="hint-line" id="confirmHint"></p>
+            </div>
+            <div class="card result-card" id="resultCard" hidden>
+              <div class="result-head">
+                <div><span class="eyebrow">Venta registrada</span><h2 id="resultSaleNumber">Venta #</h2><p class="sub" id="resultMeta"></p></div>
+                <div class="result-total" id="resultTotal"></div>
+              </div>
+              <div id="resultPayments" style="margin-top:14px"></div>
+              <div id="folioList"></div>
+              <div class="panel-action">
+                <button class="btn-secondary" onclick="resetCart()">Nueva venta</button>
+                <button class="small-btn primary" onclick="printLastTicket()">Imprimir ticket</button>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </div>
+    </section>
+
+    <section class="page admin-only" id="page-inventario">
+      <div class="page-wrap">
+        <div class="card">
+          <span class="eyebrow">Almacén</span><h2>Stock de brazaletes por color</h2>
+          <p class="hint">Cada brazalete emitido descuenta 1 del stock físico de por vida. Los folios siguen una secuencia continua por prefijo y nunca se repiten. Cuando llegue mercancía nueva, usa "Recargar" para sumar al stock_total.</p>
+          <div class="inventory-grid" id="inventoryList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page admin-only" id="page-corte">
+      <div class="page-wrap">
+
+        <div class="wizard-progress no-print" id="corteProgress">
+          <div class="wizard-step active" data-step="1" onclick="corteGoTo(1)"><span class="wizard-step-num">1</span>Revisión</div>
+          <div class="wizard-step" data-step="2" onclick="corteGoTo(2)"><span class="wizard-step-num">2</span>Movimientos</div>
+          <div class="wizard-step" data-step="3" onclick="corteGoTo(3)"><span class="wizard-step-num">3</span>Cierre</div>
+        </div>
+
+        <!-- ── Paso 1 · Revisión ─────────────────────────────────────────── -->
+        <section id="corteStepRevision">
+          <div class="card">
+            <span class="eyebrow">Fin de turno</span><h2>Corte de caja</h2>
+            <p class="hint">Revisa lo que pasó en el turno antes de continuar.</p>
+            <div id="corteResumen" style="margin-top:14px"></div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <span class="eyebrow">Operaciones</span><h2>Resumen del turno</h2>
+            <div id="corteOperaciones" class="stat-grid corte-stats" style="margin-top:6px"></div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <span class="eyebrow">Pagos</span><h2>Ventas por método de pago</h2>
+            <div id="cortePagos" style="margin-top:10px"></div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <span class="eyebrow">Inventario</span><h2>Brazaletes vendidos</h2>
+            <p class="hint">Concilia contra el inventario físico antes de entregar la caja.</p>
+            <div id="corteBrazaletes" style="margin-top:10px;overflow:auto"></div>
+          </div>
+
+          <div class="corte-actions" style="margin-top:18px">
+            <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(2)"><span>Continuar a movimientos</span><span>→</span></button>
+          </div>
+        </section>
+
+        <!-- ── Paso 2 · Movimientos ──────────────────────────────────────── -->
+        <section id="corteStepMovimientos" hidden>
+          <div class="card">
+            <span class="eyebrow">Movimientos de caja</span><h2>Depósitos y retiros</h2>
+            <p class="hint">Registra ingresos extra (depósito) o salidas de efectivo (retiro: hielo, suministros, etc.).</p>
+            <div class="segmented" style="margin-top:12px;grid-template-columns:repeat(2,1fr)">
+              <button id="cajaMovTipoDep" class="active" type="button" onclick="setCajaMovTipo('deposito')">Depósito (+)</button>
+              <button id="cajaMovTipoRet" type="button" onclick="setCajaMovTipo('retiro')">Retiro (−)</button>
+            </div>
+            <div class="control-field">
+              <label for="cajaMovMonto">Monto MXN</label>
+              <input id="cajaMovMonto" type="number" min="1" step="1" placeholder="0" />
+            </div>
+            <div class="control-field">
+              <label for="cajaMovDesc">Descripción</label>
+              <input id="cajaMovDesc" type="text" placeholder="Ej. Compra de hielo" />
+            </div>
+            <button class="btn-primary" onclick="registrarCajaMov()"><span>Registrar movimiento</span><span>+</span></button>
+            <p class="hint-line" id="cajaMovHint"></p>
+            <h3 style="margin:18px 0 8px;font-size:14px">Movimientos del turno</h3>
+            <div id="cajaMovList"></div>
+          </div>
+
+          <div class="corte-actions" style="margin-top:18px">
+            <button class="btn-secondary" style="margin:0;flex:1" onclick="corteGoTo(1)">← Regresar</button>
+            <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(3)"><span>Continuar al cierre</span><span>→</span></button>
+          </div>
+        </section>
+
+        <!-- ── Paso 3 · Cierre ───────────────────────────────────────────── -->
+        <section id="corteStepCierre" hidden>
+          <div class="card">
+            <span class="eyebrow">Cierre</span><h2>Resumen de cierre</h2>
+            <p class="hint">Cuenta el efectivo de la caja y captura el total. Si recibes dólares físicos, anótalos en USD para que se comparen con lo esperado.</p>
+            <div class="control-field" style="margin-top:10px">
+              <label for="efectivoContadoMxn">Efectivo contado MXN</label>
+              <input id="efectivoContadoMxn" type="number" min="0" step="1" placeholder="0" oninput="renderCorteCierre()" />
+            </div>
+            <div class="control-field">
+              <label for="efectivoContadoUsd">Dólares contados (USD físicos, opcional)</label>
+              <input id="efectivoContadoUsd" type="number" min="0" step="0.01" placeholder="0" oninput="renderCorteCierre()" />
+            </div>
+            <div id="corteCierre" style="margin-top:14px"></div>
+            <div class="control-field" style="margin-top:14px">
+              <label for="fondoSiguiente">Fondo a dejar para el siguiente turno (MXN)</label>
+              <input id="fondoSiguiente" type="number" min="0" step="1" placeholder="0" oninput="renderCorteCierre()" />
+            </div>
+            <div class="mini-item" style="margin-top:10px"><span>Efectivo a retirar / entregar al supervisor</span><strong id="efectivoRetirar">—</strong></div>
+          </div>
+
+          <div class="corte-actions" style="margin-top:18px">
+            <button class="btn-secondary" style="margin:0;flex:1" onclick="corteGoTo(2)">← Regresar</button>
+            <button class="btn-secondary" style="margin:0;flex:1" onclick="printCorte()">Imprimir corte</button>
+            <button class="btn-primary btn-danger" style="margin:0;flex:1" onclick="cerrarTurno()">Cerrar turno</button>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <section class="page admin-only" id="page-historial">
+      <div class="page-wrap">
+        <div class="card">
+          <span class="eyebrow">Trazabilidad</span><h2>Turnos anteriores</h2>
+          <p class="hint">Resumen de cada turno cerrado: ventas totales y diferencia de caja.</p>
+          <div id="pastShiftsList" style="margin-top:14px"></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <span class="eyebrow">Trazabilidad</span><h2>Historial del turno actual</h2>
+          <div style="overflow:auto"><table class="table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Método</th><th>Monto</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page admin-only" id="page-usuarios">
+      <div class="page-wrap">
+        <div class="card">
+          <span class="eyebrow">Administración</span><h2>Agregar usuario</h2>
+          <button class="btn-primary" id="btnToggleAddUser" onclick="toggleAddUserForm()"><span>＋ Crear nuevo usuario</span><span id="btnToggleAddUserIcon">▾</span></button>
+          <div id="addUserForm" hidden style="margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface)">
+            <p class="hint">Crea un usuario por nombre para cada cajero. Cada uno inicia sesión con su propio PIN.</p>
+            <div class="control-field">
+              <label for="newUserName">Nombre de usuario (sin espacios ni acentos)</label>
+              <input id="newUserName" type="text" placeholder="Ej. maria" />
+            </div>
+            <div class="control-field">
+              <label for="newUserPin">PIN (mínimo 4 dígitos)</label>
+              <input id="newUserPin" type="password" placeholder="****" />
+            </div>
+            <span class="field-label">Rol</span>
+            <div class="segmented" id="newUserRole">
+              <button type="button" class="active" data-role="cajera" onclick="selectNewUserRole('cajera')">Cajera</button>
+              <button type="button" data-role="admin" onclick="selectNewUserRole('admin')">Administrador</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn-secondary" style="flex:1;margin:0" onclick="toggleAddUserForm(false)">Cancelar</button>
+              <button class="btn-primary" style="flex:1;margin:0" onclick="crearUsuario()"><span>Confirmar crear</span><span>✓</span></button>
+            </div>
+            <p class="hint-line" id="newUserHint"></p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <span class="eyebrow">Administración</span><h2>Usuarios existentes</h2>
+          <button class="btn-primary" id="btnToggleUsersList" onclick="toggleUsersList()"><span>Ver usuarios</span><span id="btnToggleUsersListIcon">▾</span></button>
+          <div id="usersList" hidden style="margin-top:14px"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const COLOR_STYLES = {
+  rojo: { accent: '#d9785a', soft: '#fbeae3' },
+  rosa: { accent: '#d98aa8', soft: '#fbeaf1' },
+  azul: { accent: '#5e93b8', soft: '#e9f0f5' },
+  naranja: { accent: '#e0a25a', soft: '#faf0e2' },
+  verde: { accent: '#6fa888', soft: '#e8f2ed' },
+  amarillo: { accent: '#d6c25a', soft: '#f9f5e0' },
+  blanco: { accent: '#aeb7ad', soft: '#f2f3f0' }
+};
+const TIPO_LABELS = { adulto: 'Adulto', 'niño': 'Niño', local: 'Local' };
+const PAYMENT_LABELS = {
+  efectivo: 'Efectivo', visa: 'Visa', mastercard: 'Mastercard',
+  credito: 'Crédito', dolar: 'Dólar', transferencia: 'Transferencia', cortesia: 'Cortesía'
+};
+const PAYMENTS = Object.keys(PAYMENT_LABELS).map((id) => ({ id, label: PAYMENT_LABELS[id] }));
+const SESSION_KEY = 'kaan_luum_session';
+
+let session = null;
+let turno = null;
+let tickets = [];
+let inventario = [];
+let cart = {};
+let cajaStep = 1;
+let paymentLines = [];
+let selectedPaymentMethod = 'efectivo';
+let lastTicket = null;
+let lastCorte = null;
+let cajaMovTipo = 'deposito';
+let corteStep = 1;
+
+const money = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n || 0);
+const moneyUsd = (n) => '$' + (n || 0).toFixed(2) + ' USD';
+const fmtDate = (ts) => new Date(ts).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+const tipoLabel = (tv) => TIPO_LABELS[tv] || tv;
+const paymentLabel = (metodo) => PAYMENT_LABELS[metodo] || metodo;
+
+async function api(path, options = {}) {
+  let response;
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers: { 'content-type': 'application/json', ...(options.headers || {}) }
+    });
+  } catch (e) {
+    setConnection(false);
+    throw new Error('Sin conexión con el servidor local.');
+  }
+  setConnection(true);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload.success === false) {
+    throw new Error(payload.error || 'No fue posible completar la operación.');
+  }
+  return payload;
+}
+
+function setConnection(online) {
+  const dot = document.getElementById('connDot');
+  if (dot) dot.classList.toggle('offline', !online);
+}
+
+// Para efectivo y dólares, line.monto es lo que el cliente ENTREGÓ (no lo que se
+// le cobra). Esta función reparte cada pago contra el saldo pendiente de la venta,
+// igual que lo hace el servidor al confirmar, para mostrar una vista previa fiel.
+function splitPagos(lines, totalMxn) {
+  let remaining = Math.round(totalMxn || 0);
+  const tipoCambio = turno?.tipo_cambio_usd || 1;
+  return lines.map((line) => {
+    if (line.metodo === 'cortesia') {
+      return { ...line, aplicado: 0, cambio: 0, recibidoMxn: 0 };
+    }
+    if (line.metodo === 'dolar') {
+      const recibidoMxn = Math.round((line.monto || 0) * tipoCambio);
+      const aplicado = Math.min(recibidoMxn, Math.max(0, remaining));
+      const cambio = recibidoMxn - aplicado;
+      remaining = Math.max(0, remaining - aplicado);
+      return { ...line, aplicado, cambio, recibidoMxn };
+    }
+    if (line.metodo === 'efectivo') {
+      const recibidoMxn = Math.round(line.monto || 0);
+      const aplicado = Math.min(recibidoMxn, Math.max(0, remaining));
+      const cambio = recibidoMxn - aplicado;
+      remaining = Math.max(0, remaining - aplicado);
+      return { ...line, aplicado, cambio, recibidoMxn };
+    }
+    const aplicado = Math.round(line.monto || 0);
+    remaining = Math.max(0, remaining - aplicado);
+    return { ...line, aplicado, cambio: 0, recibidoMxn: null };
+  });
+}
+
+function paymentLineDisplay(split) {
+  if (split.metodo === 'cortesia') return 'Sin cobro';
+  if (split.metodo === 'dolar') {
+    const base = moneyUsd(split.monto) + ' · ' + money(split.recibidoMxn);
+    return split.cambio > 0 ? base + ' · Cambio ' + money(split.cambio) : base;
+  }
+  if (split.metodo === 'efectivo') {
+    const base = 'Monto recibido ' + money(split.recibidoMxn);
+    return split.cambio > 0 ? base + ' · Cambio ' + money(split.cambio) : base;
+  }
+  return money(split.aplicado);
+}
+function paymentTotalAplicado(totalMxn) {
+  return splitPagos(paymentLines, totalMxn).reduce((sum, l) => sum + l.aplicado, 0);
+}
+function paymentTotalCambio(totalMxn) {
+  return splitPagos(paymentLines, totalMxn).reduce((sum, l) => sum + l.cambio, 0);
+}
+
+async function initApp() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (saved && saved.usuario) session = saved;
+  } catch (e) { session = null; }
+
+  document.querySelectorAll('.nav-btn').forEach((b) => { b.onclick = () => showPage(b.dataset.page); });
+  document.getElementById('loginPin').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+  // Botón "Salir / Apagar": solo tiene sentido dentro de la app instalada (Electron).
+  if (window.electronAPI && window.electronAPI.isElectron) {
+    const btnSalir = document.getElementById('btnSalir');
+    if (btnSalir) btnSalir.hidden = false;
+    const exitPin = document.getElementById('exitPin');
+    if (exitPin) exitPin.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmarSalir(); });
+  }
+
+  if (!session) {
+    await populateLoginUsers();
+    document.getElementById('loginOverlay').classList.add('active');
+    return;
+  }
+  document.getElementById('loginOverlay').classList.remove('active');
+  applyRole();
+  await checkShift();
+}
+
+async function populateLoginUsers() {
+  const select = document.getElementById('loginUser');
+  try {
+    const result = await api('/api/caja/usuarios');
+    const activos = result.usuarios.filter((u) => u.activo);
+    select.innerHTML = activos.map((u) =>
+      '<option value="' + u.usuario + '">' + u.usuario + (u.rol === 'admin' ? ' (admin)' : '') + '</option>'
+    ).join('');
+  } catch (e) {
+    // Sin conexión al abrir: deja las opciones que ya hubiera en el <select>.
+  }
+}
+
+async function doLogin() {
+  const usuario = document.getElementById('loginUser').value;
+  const pin = document.getElementById('loginPin').value;
+  const err = document.getElementById('loginErr');
+  try {
+    const result = await api('/api/caja/login', { method: 'POST', body: JSON.stringify({ usuario, pin }) });
+    session = { usuario: result.usuario, rol: result.rol };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    err.style.display = 'none';
+    document.getElementById('loginPin').value = '';
+    document.getElementById('loginOverlay').classList.remove('active');
+    applyRole();
+    await checkShift();
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+}
+
+async function logout() {
+  session = null;
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('shiftOverlay').classList.remove('active');
+  await populateLoginUsers();
+  document.getElementById('loginOverlay').classList.add('active');
+}
+
+// ── Salir / Apagar (solo Electron) — protegido con PIN de administrador ───────
+function pedirSalir() {
+  const err = document.getElementById('exitErr');
+  if (err) err.style.display = 'none';
+  const input = document.getElementById('exitPin');
+  if (input) input.value = '';
+  document.getElementById('exitOverlay').classList.add('active');
+  if (input) setTimeout(() => input.focus(), 50);
+}
+
+function cerrarExitModal() {
+  document.getElementById('exitOverlay').classList.remove('active');
+}
+
+async function confirmarSalir() {
+  const pin = document.getElementById('exitPin').value;
+  const err = document.getElementById('exitErr');
+  err.style.display = 'none';
+  if (!pin) { err.textContent = 'Escribe el PIN de administrador.'; err.style.display = 'block'; return; }
+  try {
+    // Verifica el PIN contra los usuarios con rol admin.
+    const result = await api('/api/caja/usuarios');
+    const admins = (result.usuarios || []).filter((u) => u.rol === 'admin' && u.activo);
+    let ok = false;
+    for (const a of admins) {
+      try {
+        await api('/api/caja/login', { method: 'POST', body: JSON.stringify({ usuario: a.usuario, pin }) });
+        ok = true;
+        break;
+      } catch (e) { /* PIN no coincide con este admin, probar el siguiente */ }
+    }
+    if (!ok) { err.textContent = 'PIN de administrador incorrecto.'; err.style.display = 'block'; return; }
+    if (window.electronAPI && window.electronAPI.quitApp) {
+      await window.electronAPI.quitApp();
+    } else {
+      err.textContent = 'La opción de salir solo está disponible en la app instalada.';
+      err.style.display = 'block';
+    }
+  } catch (e) {
+    err.textContent = e.message || 'No fue posible verificar el PIN.';
+    err.style.display = 'block';
+  }
+}
+
+function applyRole() {
+  if (!session) return;
+  const isAdmin = session.rol === 'admin';
+  document.getElementById('sidebarUser').textContent = session.usuario + (isAdmin ? ' · admin' : ' · cajera');
+  document.querySelectorAll('.admin-only').forEach((el) => { el.hidden = !isAdmin; });
+  if (!isAdmin && ['dashboard', 'inventario', 'corte', 'historial', 'usuarios'].includes(getCurrentPage())) showPage('caja');
+}
+
+function toggleSidebar() {
+  document.getElementById('appShell').classList.toggle('sidebar-collapsed');
+}
+
+function getCurrentPage() {
+  const active = document.querySelector('.page.active');
+  return active ? active.id.replace('page-', '') : 'caja';
+}
+
+async function checkShift() {
+  try {
+    const result = await api('/api/caja/turno-activo');
+    turno = result.turno;
+  } catch (e) {
+    turno = null;
+  }
+  if (!turno) {
+    document.getElementById('shiftOverlay').classList.add('active');
+    document.getElementById('sidebarTurno').textContent = 'Turno cerrado';
+    document.getElementById('usdRateAperturaInput').value = 18;
+    return;
+  }
+  document.getElementById('shiftOverlay').classList.remove('active');
+  document.getElementById('sidebarTurno').textContent = 'Turno #' + turno.id + ' · abierto';
+  await loadCatalog();
+  await refreshAll();
+}
+
+async function loadCatalog() {
+  const ticketsResult = await api('/api/caja/tickets');
+  tickets = ticketsResult.tickets;
+  const inventarioResult = await api('/api/caja/inventario');
+  inventario = inventarioResult.inventario;
+}
+
+async function abrirTurno() {
+  const err = document.getElementById('shiftErr');
+  const fondo = Number(document.getElementById('fondoInput').value);
+  const tc = Number(document.getElementById('usdRateAperturaInput').value);
+  try {
+    const result = await api('/api/caja/turnos/abrir', {
+      method: 'POST',
+      body: JSON.stringify({
+        operador: session.usuario,
+        fondo_inicial: fondo,
+        tipo_cambio_usd: tc
+      })
+    });
+    turno = result.turno;
+    err.style.display = 'none';
+    document.getElementById('fondoInput').value = '';
+    await checkShift();
+    showPage('caja');
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+}
+
+async function cerrarTurno() {
+  if (!lastCorte) { alert('No hay corte cargado todavía.'); return; }
+  const input = document.getElementById('efectivoContadoMxn');
+  if (!input || input.value === '') {
+    alert('Captura el efectivo contado en caja antes de cerrar el turno.');
+    return;
+  }
+  const contado = leerContadoMxn();
+  if (contado < 0) { alert('El efectivo contado no puede ser negativo.'); return; }
+  const esperado = lastCorte.efectivo_esperado || 0;
+  const diff = contado - esperado;
+  const aviso = diff === 0
+    ? '¿Cerrar el turno? Caja cuadrada.'
+    : '¿Cerrar el turno? Diferencia: ' + (diff > 0 ? '+' : '') + money(diff) + '. La caja quedará bloqueada hasta una nueva apertura.';
+  if (!confirm(aviso)) return;
+  try {
+    await api('/api/caja/turnos/cerrar', {
+      method: 'POST',
+      body: JSON.stringify({ operador: session.usuario, efectivo_contado: contado })
+    });
+    document.getElementById('efectivoContadoMxn').value = '';
+    document.getElementById('efectivoContadoUsd').value = '';
+    document.getElementById('fondoSiguiente').value = '';
+    turno = null;
+    resetCart();
+    await checkShift();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function showPage(page) {
+  if (!session) return;
+  const isAdmin = session.rol === 'admin';
+  if (!isAdmin && ['dashboard', 'inventario', 'corte', 'historial', 'usuarios'].includes(page)) return;
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
+  const titles = { dashboard: 'Panel de control', caja: 'Caja', inventario: 'Inventario', corte: 'Corte de caja', historial: 'Historial', usuarios: 'Usuarios' };
+  document.getElementById('pageTitle').textContent = titles[page] || 'Kaan Luum';
+  if (page === 'corte') { corteStep = 1; renderCorteStep(); }
+  refreshAll();
+}
+
+async function refreshAll() {
+  if (!session || !turno) return;
+  const tasks = [renderTop(), renderDashboard(), renderInventory(), renderCorte(), renderHistory()];
+  if (session.rol === 'admin') tasks.push(renderUsers());
+  const results = await Promise.allSettled(tasks);
+  results.forEach((r) => { if (r.status === 'rejected') console.error('Error al refrescar:', r.reason); });
+
+  try {
+    renderWizardStep();
+    renderTickets();
+    renderPayments();
+    updateSummary();
+  } catch (e) {
+    console.error('Error al refrescar (UI de venta):', e);
+  }
+}
+
+async function renderTop() {
+  const dashboard = await api('/api/caja/dashboard');
+  document.getElementById('topAdentro').textContent = dashboard.adentro || 0;
+}
+
+function renderTickets() {
+  const grid = document.getElementById('ticketGrid');
+  grid.innerHTML = '';
+  tickets.forEach((t) => {
+    const style = COLOR_STYLES[t.color_brazalete] || { accent: '#999', soft: '#eee' };
+    const qty = cart[t.id] || 0;
+    const card = document.createElement('div');
+    card.className = 'ticket-card' + (qty ? ' active' : '');
+    card.style.setProperty('--accent', style.accent);
+    card.style.setProperty('--accent-soft', style.soft);
+    card.innerHTML = '<div><span class="code">' + t.color_brazalete + '</span><h3>' + t.nombre + '</h3><span class="price">' + money(t.precio) + ' · ' + tipoLabel(t.tipo_visitante) + '</span></div>' +
+      '<div class="stepper"><button ' + (qty === 0 ? 'disabled' : '') + '>−</button><span class="qty">' + qty + '</span><button>+</button></div>';
+    const [minus, plus] = card.querySelectorAll('button');
+    minus.onclick = () => changeTicket(t.id, -1);
+    plus.onclick = () => changeTicket(t.id, 1);
+    grid.appendChild(card);
+  });
+}
+
+function changeTicket(id, delta) {
+  const next = Math.max(0, (cart[id] || 0) + delta);
+  if (next === 0) delete cart[id]; else cart[id] = next;
+  renderTickets();
+  updateSummary();
+}
+
+function selectedItems() {
+  return tickets.filter((t) => cart[t.id]).map((t) => ({ ...t, qty: cart[t.id], total: cart[t.id] * t.precio }));
+}
+
+function renderPayments() {
+  const wrap = document.getElementById('paymentMethods');
+  const linesList = document.getElementById('paymentLinesList');
+  const items = selectedItems();
+  const totalMxn = items.reduce((s, i) => s + i.total, 0);
+  const aplicado = paymentTotalAplicado(totalMxn);
+  const remaining = Math.max(0, totalMxn - aplicado);
+  const splits = splitPagos(paymentLines, totalMxn);
+
+  wrap.innerHTML = PAYMENTS.map((p) =>
+    '<button class="' + (selectedPaymentMethod === p.id ? 'active' : '') + '" onclick="selectPaymentMethod(\'' + p.id + '\')">' + p.label + '</button>'
+  ).join('');
+
+  const lines = splits.length
+    ? splits.map((line, index) =>
+        '<div class="mini-item"><div><strong>' + paymentLabel(line.metodo) + '</strong><div class="hint">' + paymentLineDisplay(line) + '</div></div>' +
+        '<button class="small-btn" onclick="removePaymentLine(' + index + ')">Quitar</button></div>'
+      ).join('')
+    : '<div class="empty">No hay pagos agregados.</div>';
+
+  const isCash = selectedPaymentMethod === 'efectivo' || selectedPaymentMethod === 'dolar';
+  const amountLabel = selectedPaymentMethod === 'dolar' ? 'Monto recibido en USD' : selectedPaymentMethod === 'cortesia' ? 'Cortesía' : isCash ? 'Monto recibido' : 'Monto en MXN';
+  const amountHint = selectedPaymentMethod === 'cortesia'
+    ? 'Agrega una cortesía para marcar esta venta como sin cobro.'
+    : isCash
+      ? 'Captura cuánto te entregó el cliente. Si entrega más de lo que falta, el sistema calcula el cambio.'
+      : 'Ingresa el monto que el cliente va a pagar con ' + paymentLabel(selectedPaymentMethod) + '.';
+  const cambioTotal = paymentTotalCambio(totalMxn);
+
+  const inputField = selectedPaymentMethod === 'cortesia'
+    ? '<button class="btn-pill" style="width:100%;margin-top:0" onclick="addPaymentLine()">Agregar cortesía</button>'
+    : isCash
+      ? '<input id="paymentAmountInput" type="number" min="0" step="1" placeholder="' + (selectedPaymentMethod === 'dolar' ? 'Ej. 20' : 'Ej. ' + Math.round(remaining)) + '" oninput="updateCashChangePreview()" style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)" />' +
+        '<div id="cashChangePreview" class="hint" style="margin-top:6px;font-weight:700;color:var(--brand-dark)"></div>' +
+        '<button class="btn-pill" style="width:100%;margin-top:10px" onclick="addPaymentLine()">Agregar pago</button>'
+      : '<input id="paymentAmountInput" type="number" min="0" step="1" placeholder="Monto" style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)" /><button class="btn-pill" style="width:100%;margin-top:10px" onclick="addPaymentLine()">Agregar pago</button>';
+
+  linesList.innerHTML =
+    '<div class="totals"><div class="total-row"><span>Total aplicado</span><strong>' + money(aplicado) + '</strong></div>' +
+    '<div class="total-row"><span>Restante</span><strong>' + money(remaining) + '</strong></div>' +
+    (cambioTotal > 0 ? '<div class="total-row" style="color:var(--brand-dark);font-weight:800"><span>Entregar cambio</span><strong>' + money(cambioTotal) + ' MXN</strong></div>' : '') +
+    '</div>' +
+    '<div class="control-field" style="margin-top:14px"><label style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:6px">' + amountLabel + '</label>' +
+    inputField +
+    '<div class="hint" style="margin-top:8px">' + amountHint + '</div></div>' +
+    '<div style="margin-top:14px">' + lines + '</div>';
+}
+
+function updateCashChangePreview() {
+  const preview = document.getElementById('cashChangePreview');
+  if (!preview) return;
+  const items = selectedItems();
+  const totalMxn = items.reduce((s, i) => s + i.total, 0);
+  const remaining = Math.max(0, totalMxn - paymentTotalAplicado(totalMxn));
+  const recibido = parseFloat(document.getElementById('paymentAmountInput')?.value || '0') || 0;
+  if (recibido <= 0) { preview.textContent = ''; return; }
+
+  const recibidoMxn = selectedPaymentMethod === 'dolar'
+    ? Math.round(recibido * (turno?.tipo_cambio_usd || 1))
+    : Math.round(recibido);
+
+  if (recibidoMxn < remaining) {
+    preview.style.color = 'var(--info)';
+    preview.textContent = 'Se aplican ' + money(recibidoMxn) + '. Falta ' + money(remaining - recibidoMxn) + '.';
+    return;
+  }
+  const cambio = recibidoMxn - remaining;
+  preview.style.color = 'var(--brand-dark)';
+  preview.textContent = cambio > 0 ? 'Entregar cambio: ' + money(cambio) + ' MXN' : 'Cobro exacto, sin cambio.';
+}
+
+function selectPaymentMethod(method) {
+  selectedPaymentMethod = method;
+  renderPayments();
+  updateSummary();
+}
+
+function addPaymentLine() {
+  if (selectedPaymentMethod === 'cortesia') {
+    paymentLines.push({ metodo: 'cortesia', monto: 0 });
+  } else {
+    const monto = parseFloat(document.getElementById('paymentAmountInput')?.value || '0');
+    if (!monto || monto <= 0) { alert('Ingresa el monto recibido.'); return; }
+    paymentLines.push({ metodo: selectedPaymentMethod, monto });
+  }
+  renderPayments();
+  updateSummary();
+}
+
+function removePaymentLine(index) {
+  paymentLines.splice(index, 1);
+  renderPayments();
+  updateSummary();
+}
+
+function updateSummary() {
+  const items = selectedItems();
+  const totalMxn = items.reduce((s, i) => s + i.total, 0);
+  const totalUsd = totalMxn / (turno?.tipo_cambio_usd || 1);
+  const hasCourtesy = paymentLines.some((line) => line.metodo === 'cortesia');
+  const finalTotal = hasCourtesy ? 0 : totalMxn;
+  const visitors = items.reduce((s, i) => s + i.qty, 0);
+  const aplicado = paymentTotalAplicado(totalMxn);
+  const remaining = Math.max(0, totalMxn - aplicado);
+
+  document.getElementById('visitorSummary').textContent = visitors
+    ? visitors + ' folio(s) se generarán al confirmar.'
+    : 'Selecciona brazaletes.';
+
+  const itemsHtml = items.length
+    ? items.map((i) => '<div class="cart-line"><div><strong>' + i.qty + '× ' + i.nombre + '</strong><div class="price">' + i.color_brazalete + '</div></div><strong>' + money(i.total) + '</strong></div>').join('')
+    : '<div class="empty">Sin brazaletes seleccionados.</div>';
+  document.getElementById('cartItems').innerHTML = itemsHtml;
+
+  document.getElementById('cartTotal').textContent = money(finalTotal);
+  document.getElementById('cartTotalUsd').textContent = moneyUsd(totalUsd);
+  document.getElementById('confirmTotal').textContent = money(finalTotal);
+  document.getElementById('courtesyControls').hidden = !hasCourtesy;
+
+  let stockMsg = '';
+  for (const item of items) {
+    const inv = inventario.find((i) => i.color === item.color_brazalete);
+    const available = inv ? inv.disponible : 0;
+    if (item.qty > available) { stockMsg = 'Stock insuficiente de brazaletes ' + item.color_brazalete + ' (' + available + ' disp.).'; break; }
+  }
+  document.getElementById('wizardNextBtn').disabled = !items.length || !!stockMsg;
+
+  const motivo = document.getElementById('motivoInput').value.trim();
+  const auth = document.getElementById('authInput').value.trim();
+  let msg = '';
+  if (!turno) msg = 'Abre el turno para vender.';
+  else if (!items.length) msg = 'Selecciona al menos un brazalete.';
+  else if (stockMsg) msg = stockMsg;
+  else if (!paymentLines.length) msg = 'Agrega al menos un pago.';
+  else if (hasCourtesy && paymentLines.length > 1) msg = 'No combines cortesía con otros pagos.';
+  else if (!hasCourtesy && remaining > 0) msg = 'Registra el pago restante: ' + money(remaining) + '.';
+  else if (hasCourtesy && !motivo) msg = 'Captura el motivo de cortesía.';
+  else if (hasCourtesy && !auth) msg = 'Captura quién autorizó la cortesía.';
+
+  document.getElementById('confirmBtn').disabled = !!msg;
+  document.getElementById('confirmHint').textContent = msg;
+}
+
+async function confirmSale() {
+  const items = selectedItems().map((i) => ({ ticket_id: i.id, cantidad: i.qty }));
+  const pagos = paymentLines.map((line) => ({ metodo: line.metodo, monto: line.monto }));
+  const motivoCortesia = document.getElementById('motivoInput').value.trim();
+  const autorizadoPor = document.getElementById('authInput').value.trim();
+
+  let result;
+  try {
+    result = await api('/api/caja/ventas', {
+      method: 'POST',
+      body: JSON.stringify({
+        operador: session.usuario,
+        items,
+        pagos,
+        motivo_cortesia: motivoCortesia,
+        autorizado_por: autorizadoPor
+      })
+    });
+  } catch (e) {
+    document.getElementById('confirmHint').textContent = e.message;
+    return;
+  }
+
+  // El servidor ya hizo el reparto definitivo: monto_recibido, cambio y monto_mxn
+  // (aplicado) por cada línea de pago. Usamos esos valores tal cual, no los
+  // recalculamos en el navegador.
+  const cambioTotal = result.pagos.reduce((sum, p) => sum + (p.cambio || 0), 0);
+  const metodoUnico = result.pagos.length === 1 ? result.pagos[0].metodo : 'varios';
+  lastTicket = {
+    saleId: 'Venta #' + result.venta.id,
+    folios: result.folios,
+    total: result.venta.total,
+    totalUsd: result.venta.total_usd,
+    method: metodoUnico,
+    label: result.pagos.length === 1 ? paymentLabel(result.pagos[0].metodo) : 'Pagos mixtos',
+    payments: result.pagos,
+    cambio: cambioTotal,
+    operador: session.usuario,
+    turnoId: turno.id
+  };
+
+  document.getElementById('resultSaleNumber').textContent = 'Venta #' + result.venta.id;
+  document.getElementById('resultMeta').textContent = lastTicket.label + ' · ' + result.folios.length + ' brazalete(s)';
+  document.getElementById('resultTotal').textContent = metodoUnico === 'dolar' ? moneyUsd(result.venta.total_usd) : money(result.venta.total);
+  document.getElementById('resultPayments').innerHTML =
+    '<div class="totals" style="padding-top:0;border:0">' +
+    result.pagos.map((p) => {
+      const valor = p.metodo === 'dolar' ? moneyUsd(p.monto_origen) : money(p.monto_recibido ?? p.monto_mxn);
+      const etiqueta = p.monto_recibido != null ? 'Monto recibido (' + paymentLabel(p.metodo) + ')' : paymentLabel(p.metodo);
+      return '<div class="total-row"><span>' + etiqueta + '</span><strong>' + valor + '</strong></div>';
+    }).join('') +
+    (cambioTotal > 0
+      ? '<div class="total-row big" style="font-size:22px;color:var(--brand-dark);margin-top:6px"><span>Entregar cambio</span><span>' + money(cambioTotal) + ' MXN</span></div>'
+      : '') +
+    '</div>';
+  document.getElementById('folioList').innerHTML = result.folios.map((f) =>
+    '<div class="folio-card"><div style="display:flex;justify-content:space-between;gap:8px"><div><strong>' + f.nombre + ' · ' + f.color + '</strong></div><span class="folio-code">' + f.folio + '</span></div></div>'
+  ).join('');
+
+  document.getElementById('resumenCard').hidden = true;
+  document.getElementById('pagoCard').hidden = true;
+  document.getElementById('cajaAside').classList.remove('wizard-two-col');
+  document.getElementById('resultCard').hidden = false;
+  cart = {}; paymentLines = []; selectedPaymentMethod = 'efectivo';
+  document.getElementById('motivoInput').value = '';
+  document.getElementById('authInput').value = '';
+  await loadCatalog();
+  await refreshAll();
+}
+
+function wizardGoTo(step) {
+  cajaStep = step;
+  renderWizardStep();
+}
+
+function corteGoTo(step) {
+  corteStep = step;
+  renderCorteStep();
+}
+
+function renderCorteStep() {
+  document.querySelectorAll('#corteProgress .wizard-step').forEach((el) => {
+    const n = Number(el.dataset.step);
+    el.classList.toggle('active', n === corteStep);
+    el.classList.toggle('done', n < corteStep);
+  });
+  const ids = { 1: 'corteStepRevision', 2: 'corteStepMovimientos', 3: 'corteStepCierre' };
+  for (const [n, id] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    if (el) el.hidden = Number(n) !== corteStep;
+  }
+}
+
+function renderWizardStep() {
+  document.querySelectorAll('#wizardProgress .wizard-step').forEach((el) => {
+    const n = Number(el.dataset.step);
+    el.classList.toggle('active', n === cajaStep);
+    el.classList.toggle('done', n < cajaStep);
+  });
+  document.getElementById('cajaStepSeleccion').hidden = cajaStep !== 1;
+  document.getElementById('cajaAside').hidden = cajaStep === 1;
+  document.getElementById('cajaAside').classList.toggle('wizard-two-col', cajaStep === 3);
+  document.getElementById('resumenNavButtons').hidden = cajaStep !== 2;
+  document.getElementById('volverAlResumenBtn').hidden = cajaStep !== 3;
+  document.getElementById('pagoCard').hidden = cajaStep !== 3;
+}
+
+function resetCart() {
+  cart = {}; paymentLines = []; selectedPaymentMethod = 'efectivo';
+  cajaStep = 1;
+  document.getElementById('motivoInput').value = '';
+  document.getElementById('authInput').value = '';
+  document.getElementById('resumenCard').hidden = false;
+  document.getElementById('resultCard').hidden = true;
+  renderWizardStep();
+  renderTickets();
+  renderPayments();
+  updateSummary();
+}
+
+function buildTicketHtml(data) {
+  const d = new Date().toLocaleString('es-MX');
+  const totalLine = data.method === 'dolar'
+    ? '<div class="print-row"><span>TOTAL USD:</span><span>' + moneyUsd(data.totalUsd) + '</span></div><div class="print-row"><span>Equiv. MXN:</span><span>' + money(data.total) + '</span></div>'
+    : '<div class="print-total print-row"><span>TOTAL:</span><span>' + money(data.total) + '</span></div>';
+  const paymentsBlock = Array.isArray(data.payments) && data.payments.length
+    ? '<div class="print-line"></div><div><strong>PAGOS</strong></div>' +
+      data.payments.map((p) => {
+        if (p.monto_recibido == null) {
+          return '<div class="print-row"><span>' + paymentLabel(p.metodo) + '</span><span>' + money(p.monto_mxn || 0) + '</span></div>';
+        }
+        const recibidoTexto = p.metodo === 'dolar' ? moneyUsd(p.monto_origen) + ' (' + money(p.monto_recibido) + ')' : money(p.monto_recibido);
+        return '<div class="print-row"><span>Monto recibido (' + paymentLabel(p.metodo) + ')</span><span>' + recibidoTexto + '</span></div>';
+      }).join('')
+    : '';
+  const cambioBlock = data.cambio > 0
+    ? '<div class="print-row" style="font-weight:bold"><span>ENTREGAR CAMBIO:</span><span>' + money(data.cambio) + ' MXN</span></div>'
+    : '';
+  return '<div class="print-header"><h1>LAGUNA KAAN LUUM</h1><div>Tulum, Quintana Roo</div><div class="print-line"></div><div>' + d + '</div><div>' + data.saleId + '</div><div>Cajero: ' + data.operador + '</div><div>Turno #' + data.turnoId + '</div></div>' +
+    '<div><strong>BRAZALETES</strong></div>' +
+    data.folios.map((f) => '<div class="print-row"><span>' + f.folio + '</span><span>' + f.nombre + ' (' + f.color + ')</span></div>').join('') +
+    '<div class="print-line"></div><div class="print-row"><span>Pago:</span><span>' + data.label + '</span></div>' + totalLine +
+    paymentsBlock + cambioBlock +
+    '<div class="print-line"></div><div style="text-align:center;font-size:10px;margin-top:10px">Conserva este ticket.<br/>Los brazaletes no son transferibles.<br/>¡Gracias por su visita!</div>';
+}
+
+
+  // ── Impresión: silenciosa en Electron, diálogo en navegador ─────────────────
+  async function doPrint() {
+    if (window.electronAPI && window.electronAPI.isElectron) {
+      const result = await window.electronAPI.silentPrint();
+      if (!result.ok) console.warn('[Kaan Luum] Error de impresión:', result.error);
+    } else {
+      window.print();
+    }
+  }
+
+async function printLastTicket() {
+  if (!lastTicket) return;
+  document.getElementById('printTicket').innerHTML = buildTicketHtml(lastTicket);
+  await doPrint();
+}
+
+async function renderDashboard() {
+  const dashboard = await api('/api/caja/dashboard');
+  document.getElementById('dashEntradas').textContent = dashboard.entradas || 0;
+  document.getElementById('dashCobrado').textContent = money(dashboard.cobrado || 0);
+}
+
+async function renderInventory() {
+  await loadCatalog();
+  document.getElementById('inventoryList').innerHTML = inventario.map((item) => {
+    const ticket = tickets.find((t) => t.color_brazalete === item.color);
+    const prefijo = ticket?.prefijo || 'XX';
+    const nombre = ticket?.nombre || '';
+    const accent = (COLOR_STYLES[item.color] || {}).accent || 'var(--line)';
+    const disp = item.disponible;
+    const cls = disp === 0 ? 'err' : disp < 20 ? 'warn' : 'ok';
+    const proximoFolio = prefijo + '-' + String((item.vendidos || 0) + 1).padStart(3, '0');
+    const adentro = item.adentro ?? 0;
+    return '<div class="mini-item col" style="border-color:' + accent + ';border-width:2px;gap:6px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<strong>' + item.color + (nombre ? ' · ' + nombre : '') + '</strong>' +
+        '<span class="badge ' + cls + '">' + disp + ' disp.</span>' +
+      '</div>' +
+      '<div class="hint">Vendidos de por vida: ' + item.vendidos + ' de ' + item.stock_total + ' · Adentro ahora: ' + adentro + '</div>' +
+      '<div class="hint" style="color:var(--text);font-weight:700">Restantes para mañana: <strong>' + disp + '</strong></div>' +
+      '<div class="hint">Prefijo <strong>' + prefijo + '</strong> · Próximo folio: <strong>' + proximoFolio + '</strong></div>' +
+      '<div style="display:flex;gap:8px;margin-top:4px">' +
+        '<input type="number" min="1" step="1" placeholder="+100" id="recarga-' + item.color + '" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px" />' +
+        '<button class="small-btn" onclick="recargarStock(\'' + item.color + '\')">Recargar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function recargarStock(color) {
+  const input = document.getElementById('recarga-' + color);
+  const cantidad = Number(input?.value);
+  if (!cantidad || cantidad <= 0) { input?.focus(); return; }
+  if (!confirm('¿Agregar ' + cantidad + ' brazaletes ' + color + ' al inventario físico?')) return;
+  try {
+    await api('/api/caja/inventario/recargar', {
+      method: 'POST',
+      body: JSON.stringify({ color, cantidad })
+    });
+    await loadCatalog();
+    await renderInventory();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function leerContadoMxn() { return Number(document.getElementById('efectivoContadoMxn')?.value) || 0; }
+function leerContadoUsd() { return Number(document.getElementById('efectivoContadoUsd')?.value) || 0; }
+
+function fmtDuracion(ms) {
+  if (!ms || ms < 0) return '—';
+  const min = Math.floor(ms / 60000);
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return (h ? h + ' h ' : '') + m + ' min';
+}
+
+function diffClass(diff) {
+  if (diff === 0) return 'ok';
+  if (Math.abs(diff) < 20) return 'warn';
+  return 'err';
+}
+
+async function renderCorte() {
+  if (!turno) return;
+  const corte = await api('/api/caja/corte');
+  lastCorte = corte;
+  const t = corte.turno;
+  const op = corte.operaciones || {};
+
+  // ── Resumen del turno (cabecera) ─────────────────────────────────────────
+  document.getElementById('corteResumen').innerHTML =
+    '<div class="cierre-grid">' +
+      '<div class="row"><span>Turno</span><strong>#' + t.id + '</strong></div>' +
+      '<div class="row"><span>Operador apertura</span><strong>' + t.operador_apertura + '</strong></div>' +
+      '<div class="row"><span>Apertura</span><strong>' + fmtDate(t.abierto_en) + '</strong></div>' +
+      '<div class="row"><span>Duración</span><strong>' + fmtDuracion(op.duracion_ms) + '</strong></div>' +
+      '<div class="row"><span>Fondo inicial</span><strong>' + money(t.fondo_inicial) + '</strong></div>' +
+      '<div class="row"><span>Tipo de cambio USD</span><strong>$' + (Number(t.tipo_cambio_usd) || 0).toFixed(2) + '</strong></div>' +
+    '</div>';
+
+  // ── Estadísticas de operaciones ──────────────────────────────────────────
+  document.getElementById('corteOperaciones').innerHTML =
+    statCardHtml('Ventas cobradas', op.ventas_cobradas || 0) +
+    statCardHtml('Total cobrado', money(op.monto_cobrado || 0)) +
+    statCardHtml('Ticket promedio', money(op.ticket_promedio || 0)) +
+    statCardHtml('Cortesías', (corte.cortesias?.cantidad || 0) + ' · ' + money(corte.cortesias?.valor_comercial || 0)) +
+    statCardHtml('Primera venta', op.primera_venta ? fmtDate(op.primera_venta) : '—') +
+    statCardHtml('Última venta', op.ultima_venta ? fmtDate(op.ultima_venta) : '—') +
+    statCardHtml('Depósitos', '+' + money(corte.depositos)) +
+    statCardHtml('Retiros', '−' + money(corte.retiros));
+
+  // ── Pagos por método ─────────────────────────────────────────────────────
+  const metodos = Object.entries(corte.por_metodo).sort((a, b) => b[1].mxn - a[1].mxn);
+  document.getElementById('cortePagos').innerHTML = metodos.length
+    ? '<table class="table"><thead><tr><th>Método</th><th>Pagos</th><th>Importe MXN</th><th>Origen</th></tr></thead><tbody>' +
+        metodos.map(([m, d]) =>
+          '<tr><td>' + paymentLabel(m) + '</td><td>' + d.conteo + '</td><td>' + money(d.mxn) + '</td><td>' +
+          (m === 'dolar' ? moneyUsd(d.usd) : '—') + '</td></tr>'
+        ).join('') +
+      '</tbody></table>'
+    : '<div class="empty">Sin pagos registrados en este turno.</div>';
+
+  // ── Brazaletes vendidos por tipo ─────────────────────────────────────────
+  const bz = corte.brazaletes_por_tipo || [];
+  document.getElementById('corteBrazaletes').innerHTML = bz.length
+    ? '<table class="table"><thead><tr><th>Brazalete</th><th>Color</th><th>Cantidad</th><th>Cancelados</th><th>Total</th></tr></thead><tbody>' +
+        bz.map((b) =>
+          '<tr><td>' + b.nombre + '</td><td>' + b.color + '</td><td>' + b.cantidad + '</td><td>' + b.cancelados + '</td><td>' + money(b.total) + '</td></tr>'
+        ).join('') +
+      '</tbody></table>'
+    : '<div class="empty">Sin brazaletes vendidos en este turno.</div>';
+
+  renderCajaMovs(corte.movimientos_caja);
+  renderCorteCierre();
+}
+
+function statCardHtml(eyebrow, value) {
+  return '<div class="stat-card"><span class="eyebrow">' + eyebrow + '</span><div class="stat-value">' + value + '</div></div>';
+}
+
+function renderCorteCierre() {
+  if (!lastCorte) return;
+  const el = document.getElementById('corteCierre');
+  if (!el) return;
+  const corte = lastCorte;
+  const esperadoMxn = corte.efectivo_esperado || 0;
+  const esperadoUsd = corte.usd_esperado || 0;
+  const contadoMxn = leerContadoMxn();
+  const contadoUsd = leerContadoUsd();
+  const diffMxn = contadoMxn - esperadoMxn;
+  const diffUsd = contadoUsd - esperadoUsd;
+  const fondoSig = Math.max(0, Number(document.getElementById('fondoSiguiente')?.value) || 0);
+  const retirar = Math.max(0, contadoMxn - fondoSig);
+
+  el.innerHTML =
+    '<div class="cierre-grid">' +
+      '<div class="row"><span>Efectivo esperado MXN</span><strong>' + money(esperadoMxn) + '</strong></div>' +
+      '<div class="row"><span>Efectivo contado MXN</span><strong>' + money(contadoMxn) + '</strong></div>' +
+      '<div class="row diff"><span>Diferencia MXN</span><strong class="' + diffClass(diffMxn) + '">' + (diffMxn > 0 ? '+' : '') + money(diffMxn) + '</strong></div>' +
+      '<div class="row"><span>Dólares esperados</span><strong>US$ ' + esperadoUsd.toFixed(2) + '</strong></div>' +
+      '<div class="row"><span>Dólares contados</span><strong>US$ ' + contadoUsd.toFixed(2) + '</strong></div>' +
+      '<div class="row diff"><span>Diferencia USD</span><strong class="' + diffClass(diffUsd) + '">' + (diffUsd > 0 ? '+' : '') + 'US$ ' + diffUsd.toFixed(2) + '</strong></div>' +
+    '</div>';
+
+  document.getElementById('efectivoRetirar').textContent = money(retirar);
+}
+
+function setCajaMovTipo(tipo) {
+  if (tipo !== 'deposito' && tipo !== 'retiro') return;
+  cajaMovTipo = tipo;
+  document.getElementById('cajaMovTipoDep').classList.toggle('active', tipo === 'deposito');
+  document.getElementById('cajaMovTipoRet').classList.toggle('active', tipo === 'retiro');
+}
+
+async function registrarCajaMov() {
+  const hint = document.getElementById('cajaMovHint');
+  const montoInput = document.getElementById('cajaMovMonto');
+  const descInput = document.getElementById('cajaMovDesc');
+  try {
+    await api('/api/caja/movimientos', {
+      method: 'POST',
+      body: JSON.stringify({
+        operador: session.usuario,
+        tipo: cajaMovTipo,
+        monto: montoInput.value,
+        concepto: descInput.value
+      })
+    });
+    montoInput.value = '';
+    descInput.value = '';
+    hint.textContent = '';
+    await renderCorte();
+    await renderHistory();
+  } catch (e) {
+    hint.textContent = e.message;
+  }
+}
+
+function renderCajaMovs(movimientos) {
+  const html = movimientos.length
+    ? movimientos.map((m) => {
+        const sign = m.tipo === 'deposito' ? '+' : '−';
+        const color = m.tipo === 'deposito' ? 'var(--brand-dark)' : 'var(--danger)';
+        const label = m.tipo === 'deposito' ? 'Depósito' : 'Retiro';
+        return '<div class="mini-item col"><div style="display:flex;justify-content:space-between;gap:10px"><strong>' + label + '</strong><strong style="color:' + color + '">' + sign + money(m.monto) + '</strong></div><div class="hint">' + (m.concepto || '—') + ' · ' + fmtDate(m.timestamp) + '</div></div>';
+      }).join('')
+    : '<div class="empty">Sin depósitos ni retiros en este turno.</div>';
+  document.getElementById('cajaMovList').innerHTML = html;
+}
+
+async function printCorte() {
+  if (!turno) return;
+  const corte = lastCorte || await api('/api/caja/corte');
+  const tc = Number(corte.turno.tipo_cambio_usd) || 0;
+  const op = corte.operaciones || {};
+  const contadoMxn = leerContadoMxn();
+  const contadoUsd = leerContadoUsd();
+  const diffMxn = contadoMxn - (corte.efectivo_esperado || 0);
+  const diffUsd = contadoUsd - (corte.usd_esperado || 0);
+  const fondoSig = Math.max(0, Number(document.getElementById('fondoSiguiente')?.value) || 0);
+  const retirar = Math.max(0, contadoMxn - fondoSig);
+
+  const seccion = (titulo, contenido) =>
+    '<div class="print-line"></div><div style="font-weight:bold;margin-bottom:4px">' + titulo + '</div>' + contenido;
+  const filaPrint = (l, r) => '<div class="print-row"><span>' + l + '</span><span>' + r + '</span></div>';
+
+  let html = '<div class="print-header"><h1>CORTE DE CAJA</h1><div>LAGUNA KAAN LUUM</div>' +
+    '<div>' + new Date().toLocaleString('es-MX') + '</div>' +
+    '<div>Turno #' + corte.turno.id + '</div></div>';
+
+  html += seccion('TURNO',
+    filaPrint('Apertura:', fmtDate(corte.turno.abierto_en)) +
+    filaPrint('Operador:', corte.turno.operador_apertura) +
+    filaPrint('Duración:', fmtDuracion(op.duracion_ms)) +
+    filaPrint('Fondo inicial:', money(corte.turno.fondo_inicial)) +
+    filaPrint('Tipo cambio USD:', '$' + tc.toFixed(2))
+  );
+
+  html += seccion('OPERACIONES',
+    filaPrint('Ventas cobradas:', String(op.ventas_cobradas || 0)) +
+    filaPrint('Total cobrado:', money(op.monto_cobrado || 0)) +
+    filaPrint('Ticket promedio:', money(op.ticket_promedio || 0)) +
+    filaPrint('Cortesías:', (corte.cortesias?.cantidad || 0) + ' · ' + money(corte.cortesias?.valor_comercial || 0))
+  );
+
+  const metodos = Object.entries(corte.por_metodo).sort((a, b) => b[1].mxn - a[1].mxn);
+  if (metodos.length) {
+    html += seccion('VENTAS POR MÉTODO',
+      metodos.map(([k, v]) =>
+        filaPrint(paymentLabel(k) + ' (' + v.conteo + '):',
+          k === 'dolar' ? 'US$ ' + (v.usd || 0).toFixed(2) + ' / ' + money(v.mxn) : money(v.mxn))
+      ).join('') +
+      filaPrint('TOTAL VENTAS:', money(corte.total_ventas))
+    );
+  }
+
+  const bz = corte.brazaletes_por_tipo || [];
+  if (bz.length) {
+    html += seccion('BRAZALETES VENDIDOS',
+      bz.map((b) => filaPrint(b.nombre + ' / ' + b.color + ' (' + b.cantidad + '):', money(b.total))).join('')
+    );
+  }
+
+  if (corte.movimientos_caja.length) {
+    html += seccion('DEPÓSITOS / RETIROS',
+      corte.movimientos_caja.map((m) =>
+        filaPrint((m.tipo === 'deposito' ? '+ ' : '− ') + (m.concepto || m.tipo) + ':',
+          (m.tipo === 'deposito' ? '+' : '−') + money(m.monto))
+      ).join('') +
+      filaPrint('Total depósitos:', '+' + money(corte.depositos)) +
+      filaPrint('Total retiros:', '−' + money(corte.retiros))
+    );
+  }
+
+  html += seccion('ARQUEO',
+    filaPrint('Esperado MXN:', money(corte.efectivo_esperado || 0)) +
+    filaPrint('Contado MXN:', money(contadoMxn)) +
+    filaPrint('Diferencia MXN:', (diffMxn > 0 ? '+' : '') + money(diffMxn)) +
+    filaPrint('Esperado USD:', 'US$ ' + (corte.usd_esperado || 0).toFixed(2)) +
+    filaPrint('Contado USD:', 'US$ ' + contadoUsd.toFixed(2)) +
+    filaPrint('Diferencia USD:', (diffUsd > 0 ? '+' : '') + 'US$ ' + diffUsd.toFixed(2))
+  );
+
+  html += seccion('CIERRE',
+    filaPrint('Fondo siguiente turno:', money(fondoSig)) +
+    filaPrint('Efectivo a entregar:', money(retirar))
+  );
+
+  html += '<div class="print-line"></div>' +
+    '<div style="margin-top:18px">Firma cajero: ____________________</div>' +
+    '<div style="margin-top:14px">Firma supervisor: ________________</div>' +
+    '<div style="text-align:center;margin-top:14px;font-size:10px">Fin de turno · Kaan Luum POS</div>';
+
+  document.getElementById('printTicket').innerHTML = html;
+  await doPrint();
+}
+
+async function renderHistory() {
+  if (!turno) return;
+  const [historial, cerrados] = await Promise.all([
+    api('/api/caja/historial?turno_id=' + turno.id),
+    api('/api/caja/turnos/cerrados?limite=15')
+  ]);
+  const rows = historial.movimientos;
+  document.getElementById('historyRows').innerHTML = rows.length
+    ? rows.map((m) => '<tr><td>' + fmtDate(m.timestamp) + '</td><td>' + m.tipo + '</td><td>' + (m.concepto || '—') + '</td><td>' + (m.metodo_pago ? paymentLabel(m.metodo_pago) : '—') + '</td><td>' + (m.metodo_pago === 'dolar' && m.monto_usd ? moneyUsd(m.monto_usd) : money(m.monto)) + '</td></tr>').join('')
+    : '<tr><td colspan="5"><div class="empty">Sin movimientos registrados en este turno.</div></td></tr>';
+
+  document.getElementById('pastShiftsList').innerHTML = cerrados.turnos.length
+    ? cerrados.turnos.map((t) => {
+        const diff = t.diferencia ?? 0;
+        const cls = diff === 0 ? 'ok' : diff < 0 ? 'err' : 'warn';
+        return '<div class="mini-item col">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px"><strong>Turno #' + t.id + ' · ' + t.operador_apertura + '</strong><span class="badge ' + cls + '">' + (diff > 0 ? '+' : '') + money(diff) + '</span></div>' +
+          '<div class="hint">' + fmtDate(t.abierto_en) + ' a ' + fmtDate(t.cerrado_en) + ' · Ventas: ' + money(t.totales.totalVentas) + ' · Efectivo esperado: ' + money(t.efectivo_esperado) + ' · Contado: ' + money(t.efectivo_contado) + '</div>' +
+        '</div>';
+      }).join('')
+    : '<div class="empty">Sin turnos cerrados todavía.</div>';
+}
+
+let newUserRole = 'cajera';
+function selectNewUserRole(role) {
+  newUserRole = role;
+  document.querySelectorAll('#newUserRole button').forEach((b) => b.classList.toggle('active', b.dataset.role === role));
+}
+
+function toggleAddUserForm(force) {
+  const form = document.getElementById('addUserForm');
+  const icon = document.getElementById('btnToggleAddUserIcon');
+  const label = document.querySelector('#btnToggleAddUser span:first-child');
+  const open = typeof force === 'boolean' ? force : form.hasAttribute('hidden');
+  if (open) {
+    form.removeAttribute('hidden');
+    icon.textContent = '▴';
+    if (label) label.textContent = '✕ Cerrar formulario';
+    document.getElementById('newUserName').focus();
+  } else {
+    form.setAttribute('hidden', '');
+    icon.textContent = '▾';
+    if (label) label.textContent = '＋ Crear nuevo usuario';
+    const hint = document.getElementById('newUserHint');
+    if (hint) { hint.textContent = ''; hint.style.color = ''; }
+  }
+}
+
+async function crearUsuario() {
+  const hint = document.getElementById('newUserHint');
+  const nameInput = document.getElementById('newUserName');
+  const pinInput = document.getElementById('newUserPin');
+  try {
+    await api('/api/caja/usuarios', {
+      method: 'POST',
+      body: JSON.stringify({ usuario: nameInput.value.trim(), pin: pinInput.value, rol: newUserRole })
+    });
+    nameInput.value = '';
+    pinInput.value = '';
+    hint.textContent = 'Usuario creado.';
+    hint.style.color = 'var(--brand-dark)';
+    setTimeout(() => { hint.textContent = ''; hint.style.color = ''; }, 2500);
+    await renderUsers();
+    toggleAddUserForm(false);
+    await toggleUsersList(true);
+  } catch (e) {
+    hint.textContent = e.message;
+    hint.style.color = 'var(--danger)';
+  }
+}
+
+async function toggleUsersList(force) {
+  const list = document.getElementById('usersList');
+  const icon = document.getElementById('btnToggleUsersListIcon');
+  const label = document.querySelector('#btnToggleUsersList span:first-child');
+  const open = typeof force === 'boolean' ? force : list.hasAttribute('hidden');
+  if (open) {
+    list.removeAttribute('hidden');
+    icon.textContent = '▴';
+    if (label) label.textContent = 'Ocultar usuarios';
+    await renderUsers();
+  } else {
+    list.setAttribute('hidden', '');
+    icon.textContent = '▾';
+    if (label) label.textContent = 'Ver usuarios';
+  }
+}
+
+let editingUser = null;
+let usersCache = [];
+
+async function renderUsers() {
+  const result = await api('/api/caja/usuarios');
+  usersCache = result.usuarios;
+  document.getElementById('usersList').innerHTML = usersCache.map((u) =>
+    editingUser === u.usuario ? editUserRowHtml(u) : userRowHtml(u)
+  ).join('');
+}
+
+function userRowHtml(u) {
+  return '<div class="mini-item"><div><strong>' + u.usuario + '</strong><div class="hint">' + (u.rol === 'admin' ? 'Administrador' : 'Cajera') + (u.activo ? '' : ' · desactivado') + '</div></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    '<button class="small-btn" onclick="startEditUsuario(\'' + u.usuario + '\')">Editar</button>' +
+    (u.activo
+      ? '<button class="small-btn" onclick="desactivarUsuario(\'' + u.usuario + '\')">Desactivar</button>'
+      : '<button class="small-btn" onclick="activarUsuario(\'' + u.usuario + '\')">Reactivar</button>') +
+    '<button class="small-btn" style="color:var(--danger)" onclick="eliminarUsuario(\'' + u.usuario + '\')">Eliminar</button>' +
+    '</div></div>';
+}
+
+function editUserRowHtml(u) {
+  return '<div class="mini-item col">' +
+    '<div class="control-field" style="margin-top:0"><label>Nombre de usuario</label>' +
+    '<input id="editUserName" value="' + u.usuario + '" /></div>' +
+    '<div class="control-field"><label>Nuevo PIN (déjalo vacío para no cambiarlo)</label>' +
+    '<input id="editUserPin" type="password" placeholder="****" /></div>' +
+    '<span class="field-label">Rol</span>' +
+    '<div class="segmented" id="editUserRole">' +
+    '<button type="button" class="' + (u.rol === 'cajera' ? 'active' : '') + '" data-role="cajera" onclick="selectEditUserRole(\'cajera\')">Cajera</button>' +
+    '<button type="button" class="' + (u.rol === 'admin' ? 'active' : '') + '" data-role="admin" onclick="selectEditUserRole(\'admin\')">Administrador</button>' +
+    '</div>' +
+    '<p class="hint-line" id="editUserHint"></p>' +
+    '<div style="display:flex;gap:10px;margin-top:6px">' +
+    '<button class="btn-secondary" style="margin:0;flex:1" onclick="cancelEditUsuario()">Cancelar</button>' +
+    '<button class="btn-primary" style="margin:0;flex:1" onclick="guardarEdicionUsuario(\'' + u.usuario + '\')"><span>Guardar</span></button>' +
+    '</div></div>';
+}
+
+let editUserRole = 'cajera';
+function selectEditUserRole(role) {
+  editUserRole = role;
+  document.querySelectorAll('#editUserRole button').forEach((b) => b.classList.toggle('active', b.dataset.role === role));
+}
+
+function startEditUsuario(usuario) {
+  editingUser = usuario;
+  const u = usersCache.find((x) => x.usuario === usuario);
+  editUserRole = u ? u.rol : 'cajera';
+  renderUsers();
+}
+
+function cancelEditUsuario() {
+  editingUser = null;
+  renderUsers();
+}
+
+async function guardarEdicionUsuario(usuarioActual) {
+  const hint = document.getElementById('editUserHint');
+  const nuevoNombre = document.getElementById('editUserName').value.trim();
+  const nuevoPin = document.getElementById('editUserPin').value;
+  try {
+    await api('/api/caja/usuarios/' + encodeURIComponent(usuarioActual), {
+      method: 'PUT',
+      body: JSON.stringify({ usuario: nuevoNombre, pin: nuevoPin, rol: editUserRole })
+    });
+    editingUser = null;
+    await renderUsers();
+  } catch (e) {
+    hint.textContent = e.message;
+  }
+}
+
+async function desactivarUsuario(usuario) {
+  if (!confirm('¿Desactivar a "' + usuario + '"? Ya no podrá iniciar sesión, pero puedes reactivarlo después.')) return;
+  try {
+    await api('/api/caja/usuarios/' + encodeURIComponent(usuario) + '/desactivar', { method: 'POST' });
+    await renderUsers();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function activarUsuario(usuario) {
+  try {
+    await api('/api/caja/usuarios/' + encodeURIComponent(usuario) + '/activar', { method: 'POST' });
+    await renderUsers();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function eliminarUsuario(usuario) {
+  if (!confirm('¿Eliminar definitivamente a "' + usuario + '"? Esto no se puede deshacer (sus ventas pasadas quedan registradas igual).')) return;
+  try {
+    await api('/api/caja/usuarios/' + encodeURIComponent(usuario), { method: 'DELETE' });
+    await renderUsers();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
