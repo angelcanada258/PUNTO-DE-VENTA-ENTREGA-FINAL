@@ -1,0 +1,16 @@
+electron-main.js
+electron-preload.js
+build/
+dist/
+herramientas/
+scripts/
+docs/
+test/
+backups-pre-reset/
+datos/
+datos-dev/
+*.db
+*.db-wal
+*.db-shm
+GUIA-INSTALACION-Y-USO.md
+README-INSTALAR.md
