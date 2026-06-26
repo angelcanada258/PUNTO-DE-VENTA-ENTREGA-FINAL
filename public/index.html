@@ -45,6 +45,9 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:30px 34px 20px}
 .topbar h1{font-size:42px}
 .topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.app.page-caja .topbar{padding:16px 34px 8px;align-items:center}
+.app.page-caja .topbar-title{display:none}
+.app.page-caja .page-wrap{padding-top:0}
 .pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:13px;box-shadow:var(--shadow)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
 .dot.offline{background:var(--danger)}
@@ -53,7 +56,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .page-wrap{max-width:1380px;margin:0 auto;padding:0 34px 52px}
 .layout{display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
 #cajaStepSeleccion{max-width:820px;margin:0 auto;width:100%}
-#cajaAside{max-width:480px;margin:0 auto;width:100%}
+#cajaAside{max-width:980px;margin:0 auto;width:100%}
 #cajaAside.wizard-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;align-items:start}
 .wizard-progress{display:flex;gap:10px;margin-bottom:18px}
 .wizard-step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);font-weight:800;font-size:13px;cursor:pointer;user-select:none}
@@ -97,6 +100,61 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .total-row.big span:last-child{color:var(--brand-dark)}
 .hint-line{font-size:12px;color:var(--danger);text-align:center;margin:8px 0 0;min-height:16px}
 .empty{border:1px dashed var(--line);border-radius:var(--radius-md);color:var(--ink-soft);text-align:center;padding:18px 10px;font-size:13px}
+.payment-terminal{padding:12px;background:linear-gradient(145deg,#ffffff,#f6f8f7);border-color:#d8dfdc}
+.payment-terminal h2{font-family:Inter,system-ui,sans-serif;letter-spacing:0}
+.payment-terminal>.eyebrow,.payment-terminal>h2,.payment-terminal>.sub,.payment-terminal>.totals,.payment-terminal>.field-label,.payment-terminal>#paymentMethods,.payment-terminal>#cartItems,.payment-terminal>#resumenNavButtons{display:none}
+.payment-pos{display:grid;grid-template-columns:minmax(360px,420px) minmax(0,1fr);gap:18px;align-items:stretch}
+.payment-pos>*{min-width:0}
+.payment-pad{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;border-right:1px solid #d8dfdc;padding-right:14px;min-width:0;overflow:hidden}
+.payment-method-rail{display:flex;flex-direction:column;gap:8px}
+.payment-method{height:50px;border:1px solid #cfd8d4;border-radius:6px;background:linear-gradient(180deg,#fff,#edf1ef);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 2px rgba(20,30,25,.08);font-size:10px;font-weight:900;color:#19221f;cursor:pointer;text-align:center;padding:5px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.payment-method.active{border-color:#21a875;background:#e5f6ef;box-shadow:inset 0 0 0 1px #21a875,0 0 0 2px rgba(33,168,117,.1)}
+.method-icon{width:29px;height:17px;border-radius:3px;background:#1d2a2f;color:white;display:grid;place-items:center;font-size:8px;font-weight:900;line-height:1}
+.method-icon.visa{background:white;color:#17294f;border:1px solid #cfd8d4;font-size:9px;font-style:italic}
+.method-icon.mastercard{position:relative;background:transparent;color:transparent}
+.method-icon.mastercard:before,.method-icon.mastercard:after{content:'';position:absolute;top:2px;width:14px;height:14px;border-radius:50%}
+.method-icon.mastercard:before{left:4px;background:#222b33}
+.method-icon.mastercard:after{right:4px;background:#59616a;mix-blend-mode:multiply}
+.method-icon.credito{background:#24313a}
+.method-icon.dolar{background:#0f6a49}
+.payment-keypad{display:flex;flex-direction:column;gap:8px;padding-top:16px;min-width:0}
+.payment-due-box{border:1px solid #a8d7c7;background:#e8f6f1;border-radius:7px;padding:9px 10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.payment-due-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#11664f}
+.payment-due-amount{font-size:27px;line-height:1.05;font-weight:900;color:#069a5f;font-family:Georgia,'Times New Roman',serif;letter-spacing:0;margin-top:2px}
+.payment-due-rest{font-size:12px;color:#53615b;font-weight:800;margin-top:3px}
+.payment-display{width:100%;min-width:0;height:30px;border:1px solid #1d2a2f;border-radius:4px;background:white;padding:3px 8px;font-size:19px;font-weight:800;text-align:left;font-variant-numeric:tabular-nums}
+.payment-display:focus{outline:2px solid rgba(33,168,117,.35);outline-offset:1px}
+.numpad-title{color:#7a8580;font-size:15px}
+.numpad-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;min-width:0}
+.numpad-grid button{height:30px;border:1px solid #c7d0cc;border-radius:4px;background:linear-gradient(180deg,#fff,#e8edeb);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);font-size:17px;font-weight:900;cursor:pointer}
+.numpad-grid button:active{transform:translateY(1px)}
+.payment-enter{height:30px;border:0;border-radius:5px;background:#13a86f;color:white;font-size:13px;font-weight:900;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.16)}
+.payment-note{height:20px;color:#69756f;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.payment-summary-panel{border:1px solid #d7dfdb;border-radius:8px;background:#fff;box-shadow:0 12px 24px -20px rgba(20,30,25,.4);padding:14px 14px 12px}
+.payment-total-stack{text-align:right;margin-bottom:10px}
+.payment-total-label{font-size:14px;color:#2c3934}
+.payment-total-amount{font-size:58px;line-height:.95;color:#069a5f;font-weight:900;font-family:Georgia,'Times New Roman',serif;letter-spacing:0}
+.payment-change{margin-top:6px;color:#7a8082;font-size:14px;font-weight:800}
+.payment-change strong{font-size:27px;color:#858b8f}
+.payment-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;border:1px solid #d2dbd7}
+.payment-table th,.payment-table td{border:1px solid #d2dbd7;padding:5px 6px;text-align:left}
+.payment-table th{background:#eef2f0;color:#111;font-size:11px;font-weight:900}
+.payment-table td{font-weight:700}
+.payment-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.payment-table tr.active td{background:#e8f6f1}
+.payment-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.payment-cancel,.payment-accept{height:30px;border-radius:5px;border:0;color:white;font-weight:900;cursor:pointer}
+.payment-cancel{background:#172329}
+.payment-accept{background:#12a66f}
+.payment-accept:disabled{background:#bfc8c4;color:#66736d;cursor:not-allowed}
+.payment-lines-compact{margin-top:10px;max-height:86px;overflow:auto}
+.payment-lines-compact .mini-item{padding:7px 8px;margin-bottom:5px;font-size:12px;border-radius:7px}
+.payment-lines-compact .hint{font-size:11px;margin-top:2px}
+.payment-lines-compact .small-btn{padding:6px 8px;border-radius:6px;font-size:11px}
+.payment-courtesy-box{margin-top:10px}
+.payment-courtesy-box[hidden]{display:none}
+.payment-courtesy-box .control-field{margin-top:8px}
+.payment-courtesy-box input{padding:8px 10px;border-radius:6px}
 .warning{background:var(--warn-soft);border:1px solid #f1cf95;color:var(--warn);border-radius:12px;padding:10px 12px;font-size:12px;margin-top:12px}
 .result-card{margin-top:14px}
 .result-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
@@ -212,7 +270,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 /* Terminal touch de referencia: 1024x768 (Unopc T630). El sidebar se mantiene visible
    hasta 860px de ancho para no perder la navegación en esa resolución. */
 @media(max-width:860px){.app{grid-template-columns:1fr}.sidebar{display:none}}
-@media(max-width:720px){.topbar{padding:22px 18px}.page-wrap{padding:0 18px 40px}.ticket-grid,.stat-grid,.inventory-grid,.layout{grid-template-columns:1fr}.segmented{grid-template-columns:1fr}}
+@media(max-width:720px){.topbar{padding:22px 18px}.page-wrap{padding:0 18px 40px}.ticket-grid,.stat-grid,.inventory-grid,.layout{grid-template-columns:1fr}.segmented{grid-template-columns:1fr}.payment-pos{grid-template-columns:1fr}.payment-pad{border-right:0;border-bottom:1px solid #d8dfdc;padding:0 0 14px}.payment-total-amount{font-size:44px}}
 /* Pantallas cortas (768px de alto en la terminal touch): reduce paddings/tamaños para
    que la Caja quepa con menos scroll. */
 @media(max-height:800px){
@@ -272,7 +330,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
   </div>
 </div>
 
-<div class="app no-print" id="appShell">
+<div class="app no-print page-caja" id="appShell">
   <aside class="sidebar" id="sidebar">
     <div class="logo"><div class="logo-mark">≋</div><div><h2>Kaan Luum</h2><span>Punto de venta</span></div></div>
     <nav class="nav">
@@ -297,7 +355,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
         <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
           <span></span><span></span><span></span>
         </button>
-        <div><span class="eyebrow">Laguna de Kaan Luum</span><h1 id="pageTitle">Caja</h1></div>
+        <div class="topbar-title"><span class="eyebrow">Laguna de Kaan Luum</span><h1 id="pageTitle">Caja</h1></div>
       </div>
     </header>
 
@@ -365,7 +423,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
             <button class="btn-primary" id="wizardNextBtn" onclick="wizardGoTo(2)" disabled><span>Siguiente</span><span>→</span></button>
           </section>
           <aside id="cajaAside" hidden>
-            <div class="card" id="resumenCard">
+            <div class="card payment-terminal" id="resumenCard">
               <span class="eyebrow">Resumen</span><h2>Kaan Luum</h2>
               <p class="sub" id="visitorSummary">Selecciona brazaletes.</p>
               <div id="cartItems" style="margin:16px 0;min-height:80px"></div>
@@ -395,8 +453,7 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
               <div id="resultPayments" style="margin-top:14px"></div>
               <div id="folioList"></div>
               <div class="panel-action">
-                <button class="btn-secondary" onclick="resetCart()">Nueva venta</button>
-                <button class="small-btn primary" onclick="printLastTicket()">Imprimir ticket</button>
+                <button class="small-btn primary" onclick="printAndNewSale()">Imprimir ticket y nueva venta</button>
               </div>
             </div>
           </aside>
@@ -619,6 +676,12 @@ let declaradoValues = {};
 let declaradoActivo = 'efectivo';
 let declaradoBuffer = '0';
 
+const PAYMENT_CODES = {
+  efectivo: 'EF', visa: 'VISA', mastercard: 'MC', amex: 'AMEX',
+  credito: 'CR', dolar: 'DLL', vales: 'VAL', transferencia: 'TR', cortesia: 'COR'
+};
+const PAYMENT_ORDER = ['efectivo', 'visa', 'mastercard', 'amex', 'credito', 'dolar', 'vales', 'transferencia', 'cortesia'];
+
 const money = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n || 0);
 const moneyUsd = (n) => '$' + (n || 0).toFixed(2) + ' USD';
 const fmtDate = (ts) => new Date(ts).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
@@ -696,6 +759,36 @@ function paymentTotalAplicado(totalMxn) {
 }
 function paymentTotalCambio(totalMxn) {
   return splitPagos(paymentLines, totalMxn).reduce((sum, l) => sum + l.cambio, 0);
+}
+
+function paymentKey(key) {
+  if (selectedPaymentMethod === 'cortesia') { addPaymentLine(); return; }
+  const input = document.getElementById('paymentAmountInput');
+  if (!input) return;
+  
+  if (!input.dataset.dirty) {
+    input.dataset.dirty = '1';
+    if (key !== 'back') {
+      input.value = '';
+    }
+  }
+
+  if (key === 'back') {
+    input.value = input.value.slice(0, -1);
+  } else if (key === '.') {
+    if (!input.value.includes('.')) input.value += '.';
+  } else {
+    input.value += String(key);
+  }
+  updateCashChangePreview();
+  input.focus();
+}
+
+function handlePaymentDisplayKey(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addPaymentLine();
+  }
 }
 
 async function initApp() {
@@ -917,6 +1010,7 @@ function showPage(page) {
   if (!isAdmin && ['dashboard', 'inventario', 'depositos', 'corte', 'historial', 'usuarios'].includes(page)) return;
   document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
   document.getElementById('page-' + page)?.classList.add('active');
+  document.getElementById('appShell')?.classList.toggle('page-caja', page === 'caja');
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
   const titles = { dashboard: 'Panel de control', caja: 'Caja', inventario: 'Inventario', depositos: 'Depósitos y retiros', corte: 'Corte de caja', historial: 'Historial', usuarios: 'Usuarios' };
   document.getElementById('pageTitle').textContent = titles[page] || 'Kaan Luum';
@@ -985,6 +1079,88 @@ function renderPayments() {
   const aplicado = paymentTotalAplicado(totalMxn);
   const remaining = Math.max(0, totalMxn - aplicado);
   const splits = splitPagos(paymentLines, totalMxn);
+
+  const totalCambio = paymentTotalCambio(totalMxn);
+  const methods = PAYMENT_ORDER.filter((id) => PAYMENT_LABELS[id]);
+  const methodButtons = methods.map((id) => {
+    const label = paymentLabel(id);
+    const iconClass = ['visa', 'mastercard', 'credito', 'dolar'].includes(id) ? ' ' + id : '';
+    const iconText = id === 'efectivo' ? 'CASH' : id === 'dolar' ? 'USD' : PAYMENT_CODES[id];
+    return '<button class="payment-method ' + (selectedPaymentMethod === id ? 'active' : '') + '" onclick="selectPaymentMethod(\'' + id + '\')">' +
+      '<span class="method-icon' + iconClass + '">' + iconText + '</span><span>' + label + '</span></button>';
+  }).join('');
+
+  const tableRows = methods.map((id) => {
+    const methodSplits = splits.filter((line) => line.metodo === id);
+    const importe = methodSplits.reduce((sum, line) => sum + (line.recibidoMxn ?? line.aplicado ?? 0), 0);
+    const importeTotal = methodSplits.reduce((sum, line) => sum + (line.aplicado || 0), 0);
+    return '<tr class="' + (selectedPaymentMethod === id ? 'active' : '') + '">' +
+      '<td>' + (PAYMENT_CODES[id] || id.toUpperCase()) + '</td>' +
+      '<td>' + paymentLabel(id).toUpperCase() + '</td>' +
+      '<td class="num">' + money(importe) + '</td>' +
+      '<td class="num">' + money(importeTotal) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  const enteredLines = splits.length
+    ? splits.map((line, index) =>
+        '<div class="mini-item"><div><strong>' + paymentLabel(line.metodo) + '</strong><div class="hint">' + paymentLineDisplay(line) + '</div></div>' +
+        '<button class="small-btn" onclick="removePaymentLine(' + index + ')">Quitar</button></div>'
+      ).join('')
+    : '';
+
+  const currentLabel = selectedPaymentMethod === 'dolar' ? 'Monto USD' : selectedPaymentMethod === 'cortesia' ? 'Cortesia' : 'Monto M.N.';
+  
+  let defaultAmount = remaining > 0 ? remaining : '';
+  if (selectedPaymentMethod === 'dolar' && remaining > 0) {
+    defaultAmount = Math.ceil(remaining / (turno?.tipo_cambio_usd || 1));
+  }
+  const displayPlaceholder = selectedPaymentMethod === 'cortesia' ? 'CORTESIA' : defaultAmount;
+  
+  const canAccept = totalMxn > 0 && (paymentLines.some((line) => line.metodo === 'cortesia') || remaining <= 0);
+  
+  const ticketsSummaryHtml = '<div class="payment-due-summary" style="font-size: 0.9rem; color: #1a5632; margin-bottom: 8px; font-weight: 500;">' + 
+                             items.map((i) => i.qty + 'x ' + i.nombre).join(', ') + 
+                             '</div>';
+
+  linesList.innerHTML =
+    '<div class="payment-pos">' +
+      '<div class="payment-pad">' +
+        '<div class="payment-method-rail">' + methodButtons + '</div>' +
+        '<div class="payment-keypad">' +
+          '<div class="payment-due-box">' +
+            ticketsSummaryHtml +
+            '<div class="payment-due-label">Monto a pagar</div>' +
+            '<div class="payment-due-amount">' + money(totalMxn) + '</div>' +
+            (aplicado > 0 && remaining > 0 ? '<div class="payment-due-rest">Restante: ' + money(remaining) + '</div>' : '') +
+          '</div>' +
+          '<input id="paymentAmountInput" class="payment-display" inputmode="decimal" value="" ' + (selectedPaymentMethod === 'cortesia' ? 'readonly' : '') + ' oninput="this.dataset.dirty=\'1\'; updateCashChangePreview()" onkeydown="handlePaymentDisplayKey(event)" />' +
+          '<div class="numpad-title">Numpad</div>' +
+          '<div class="numpad-grid">' +
+            [7,8,9,4,5,6,1,2,3,0,'.','back'].map((key) =>
+              '<button type="button" onclick="paymentKey(\'' + key + '\')">' + (key === 'back' ? 'x' : key) + '</button>'
+            ).join('') +
+          '</div>' +
+          '<div class="payment-note" id="cashChangePreview">' + currentLabel + '</div>' +
+          '<button type="button" class="payment-enter" onclick="addPaymentLine()">INGRESAR</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="payment-summary-panel">' +
+        '<div class="payment-total-stack">' +
+          '<div class="payment-total-label">Total M.N.</div>' +
+          '<div class="payment-total-amount">' + money(totalMxn) + '</div>' +
+          '<div class="payment-change">Cambio M.N.<br><strong>' + money(totalCambio) + '</strong></div>' +
+        '</div>' +
+        '<table class="payment-table"><thead><tr><th>Clave</th><th>Descripcion</th><th>Importe</th><th>Importe total</th></tr></thead><tbody>' + tableRows + '</tbody></table>' +
+        '<div class="payment-lines-compact">' + enteredLines + '</div>' +
+        '<div class="payment-actions">' +
+          '<button type="button" class="payment-cancel" onclick="wizardGoTo(1)">X CANCELAR</button>' +
+          '<button type="button" id="terminalAcceptBtn" class="payment-accept" onclick="confirmSale()" ' + (canAccept ? '' : 'disabled') + '>ACEPTAR</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  updateCashChangePreview();
+  return;
 
   wrap.innerHTML = PAYMENTS.map((p) =>
     '<button class="' + (selectedPaymentMethod === p.id ? 'active' : '') + '" onclick="selectPaymentMethod(\'' + p.id + '\')">' + p.label + '</button>'
@@ -1117,6 +1293,8 @@ function updateSummary() {
   else if (hasCourtesy && !auth) msg = 'Captura quién autorizó la cortesía.';
 
   document.getElementById('confirmBtn').disabled = !!msg;
+  const terminalAccept = document.getElementById('terminalAcceptBtn');
+  if (terminalAccept) terminalAccept.disabled = !!msg;
   document.getElementById('confirmHint').textContent = msg;
 }
 
@@ -1191,6 +1369,10 @@ async function confirmSale() {
 function wizardGoTo(step) {
   cajaStep = step;
   renderWizardStep();
+  if (step === 2) {
+    renderPayments();
+    updateSummary();
+  }
 }
 
 function corteGoTo(step) {
@@ -1276,6 +1458,11 @@ async function printLastTicket() {
   if (!lastTicket) return;
   document.getElementById('printTicket').innerHTML = buildTicketHtml(lastTicket);
   await doPrint();
+}
+
+async function printAndNewSale() {
+  await printLastTicket();
+  resetCart();
 }
 
 async function renderDashboard() {
