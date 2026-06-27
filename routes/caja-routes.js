@@ -120,9 +120,28 @@ function createCajaRouter(repository, opciones = {}) {
         color: req.body?.color,
         folio_inicio: req.body?.folio_inicio,
         folio_fin: req.body?.folio_fin,
+        prefijo: req.body?.prefijo,
         operador: req.body?.operador
       });
       res.status(201).json({ success: true, ...result });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/folios/disponibilidad', async (req, res, next) => {
+    try {
+      const result = await repository.consultarDisponibilidad(req.query?.color);
+      res.json({ success: true, disponibilidad: result });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/folios/arqueo', async (req, res, next) => {
+    try {
+      const result = await repository.consultarArqueo(req.query?.color);
+      res.json({ success: true, ...result });
     } catch (error) {
       next(error);
     }

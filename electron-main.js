@@ -120,8 +120,9 @@ function configurarArranqueAutomatico() {
 // ── 3. Crear la ventana principal ────────────────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
-    fullscreen: true,
-    kiosk: true,            // Pantalla completa real — sin barra de título/dirección
+    width: 1280,
+    height: 800,
+    show: true,
     autoHideMenuBar: true,
     icon: path.join(__dirname, 'public', 'icon.ico'),
     webPreferences: {

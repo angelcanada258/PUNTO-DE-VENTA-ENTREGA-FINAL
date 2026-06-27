@@ -110,6 +110,23 @@ function ensureCajaSchema(db) {
       operador  TEXT,
       timestamp INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS almacen_folios (
+      folio       TEXT PRIMARY KEY,
+      color       TEXT    NOT NULL,
+      numero      INTEGER NOT NULL,
+      estado      TEXT    NOT NULL CHECK(estado IN ('disponible', 'vendido', 'cancelado')) DEFAULT 'disponible',
+      ticket_id   TEXT,
+      recarga_id  INTEGER REFERENCES caja_recargas(id),
+      venta_id    INTEGER REFERENCES caja_ventas(id),
+      creado_en   INTEGER NOT NULL,
+      vendido_en  INTEGER
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_almacen_folios_color_estado ON almacen_folios(color, estado);
+    CREATE INDEX IF NOT EXISTS idx_almacen_folios_color_numero ON almacen_folios(color, numero);
+    CREATE INDEX IF NOT EXISTS idx_almacen_folios_recarga ON almacen_folios(recarga_id);
+    CREATE INDEX IF NOT EXISTS idx_almacen_folios_venta ON almacen_folios(venta_id);
   `);
 
   // Migración: las primeras versiones de este esquema usaban "billete_recibido".
@@ -179,11 +196,22 @@ function createCajaRepository(db) {
     return shift;
   }
 
-  function nextFolio(prefix) {
-    const row = db.prepare(`
+  function nextFolio(prefix, color) {
+    const disponibles = db.prepare(`
+      SELECT folio FROM almacen_folios
+      WHERE color = ? AND estado = 'disponible'
+      ORDER BY numero ASC
+      LIMIT 50
+    `).all(color);
+    for (const row of disponibles) {
+      const exists = db.prepare('SELECT 1 FROM caja_brazaletes WHERE folio = ?').get(row.folio);
+      if (!exists) return row.folio;
+      db.prepare("UPDATE almacen_folios SET estado = 'vendido' WHERE folio = ? AND estado = 'disponible'").run(row.folio);
+    }
+    const existing = db.prepare(`
       SELECT folio FROM caja_brazaletes WHERE folio LIKE ? ORDER BY folio DESC LIMIT 1
     `).get(`${prefix}-%`);
-    const last = row ? Number(row.folio.slice(prefix.length + 1)) || 0 : 0;
+    const last = existing ? Number(existing.folio.slice(prefix.length + 1)) || 0 : 0;
     return `${prefix}-${String(last + 1).padStart(3, '0')}`;
   }
 
@@ -351,30 +379,96 @@ function createCajaRepository(db) {
     `).all();
     const recargaMap = Object.fromEntries(ultimasRecargas.map((r) => [r.color, r]));
 
-    return rows.map((row) => ({ ...row, ultima_recarga: recargaMap[row.color] || null }));
+    const foliosDisponibles = db.prepare(`
+      SELECT
+        color,
+        COUNT(*) AS folios_disponibles,
+        MIN(folio) AS folio_desde,
+        MAX(folio) AS folio_hasta
+      FROM almacen_folios
+      WHERE estado = 'disponible'
+      GROUP BY color
+    `).all();
+    const foliosMap = Object.fromEntries(foliosDisponibles.map((r) => [r.color, r]));
+
+    return rows.map((row) => ({
+      ...row,
+      ultima_recarga: recargaMap[row.color] || null,
+      folios_disponibles: foliosMap[row.color]?.folios_disponibles || 0,
+      folio_desde: foliosMap[row.color]?.folio_desde || null,
+      folio_hasta: foliosMap[row.color]?.folio_hasta || null
+    }));
   }
 
   // Aumenta el stock_total de un color (cuando llegan brazaletes físicos).
   // Registra el rango de folios físicos para trazabilidad.
-  function recargarStock({ color, folio_inicio, folio_fin, operador }) {
+  function parseFolio(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return null;
+    const m = s.match(/^([A-Za-z]+)-(\d+)$/);
+    if (!m) return null;
+    return { prefijo: m[1].toUpperCase(), numero: Number(m[2]) };
+  }
+
+  function recargarStock({ color, folio_inicio, folio_fin, prefijo, operador }) {
     const colorLimpio = String(color || '').trim();
     if (!colorLimpio) throw domainError(400, 'Indica el color a recargar.');
-    const fi = Math.round(Number(folio_inicio));
-    const ff = Math.round(Number(folio_fin));
+    const row = db.prepare('SELECT * FROM caja_inventario_color WHERE color = ?').get(colorLimpio);
+    if (!row) throw domainError(404, `El color "${colorLimpio}" no existe en el inventario.`);
+    const ticket = db.prepare('SELECT * FROM tickets WHERE color_brazalete = ? AND activo = 1').get(colorLimpio);
+    const prefijoTicket = ticket?.prefijo || 'KL';
+    let fi, ff, prefijoFinal;
+    const inicioParsed = parseFolio(folio_inicio);
+    const finParsed = parseFolio(folio_fin);
+    if (prefijo && String(prefijo).trim()) {
+      prefijoFinal = String(prefijo).trim().toUpperCase();
+      fi = Math.round(Number(folio_inicio));
+      ff = Math.round(Number(folio_fin));
+    } else if (inicioParsed && finParsed) {
+      prefijoFinal = inicioParsed.prefijo;
+      fi = inicioParsed.numero;
+      ff = finParsed.numero;
+      if (finParsed.prefijo !== prefijoFinal) {
+        throw domainError(400, 'El prefijo del folio fin debe ser igual al del folio inicio.');
+      }
+    } else {
+      prefijoFinal = prefijoTicket;
+      fi = Math.round(Number(folio_inicio));
+      ff = Math.round(Number(folio_fin));
+    }
     if (!Number.isInteger(fi) || fi <= 0) throw domainError(400, 'El folio inicio debe ser un número positivo.');
     if (!Number.isInteger(ff) || ff < fi) throw domainError(400, 'El folio fin debe ser mayor o igual al folio inicio.');
     const n = ff - fi + 1;
     if (n > 10000) throw domainError(400, 'Rango de folios demasiado grande (máx 10,000).');
-    const row = db.prepare('SELECT * FROM caja_inventario_color WHERE color = ?').get(colorLimpio);
-    if (!row) throw domainError(404, `El color "${colorLimpio}" no existe en el inventario.`);
+    const colisiones = db.prepare(`
+      SELECT COUNT(*) c FROM almacen_folios
+      WHERE color = ? AND numero BETWEEN ? AND ?
+    `).get(colorLimpio, fi, ff).c;
+    if (colisiones > 0) throw domainError(409, `Ya existen ${colisiones} folio(s) en ese rango. Usa un rango diferente.`);
+    const timestamp = Date.now();
     db.transaction(() => {
       db.prepare('UPDATE caja_inventario_color SET stock_total = stock_total + ? WHERE color = ?')
         .run(n, colorLimpio);
-      db.prepare(`INSERT INTO caja_recargas (color, folio_inicio, folio_fin, cantidad, operador, timestamp)
+      const recargaResult = db.prepare(`INSERT INTO caja_recargas (color, folio_inicio, folio_fin, cantidad, operador, timestamp)
                   VALUES (?, ?, ?, ?, ?, ?)`)
-        .run(colorLimpio, fi, ff, n, operador || null, Date.now());
+        .run(colorLimpio, fi, ff, n, operador || null, timestamp);
+      const recargaId = Number(recargaResult.lastInsertRowid);
+      const insertFolio = db.prepare(`
+        INSERT INTO almacen_folios (folio, color, numero, estado, ticket_id, recarga_id, creado_en)
+        VALUES (?, ?, ?, 'disponible', ?, ?, ?)
+      `);
+      for (let num = fi; num <= ff; num += 1) {
+        insertFolio.run(
+          `${prefijoFinal}-${String(num).padStart(3, '0')}`,
+          colorLimpio,
+          num,
+          ticket?.id || null,
+          recargaId,
+          timestamp
+        );
+      }
     })();
-    return { color: colorLimpio, agregado: n, folio_inicio: fi, folio_fin: ff, nuevo_stock_total: row.stock_total + n };
+    return { color: colorLimpio, agregado: n, folio_inicio: fi, folio_fin: ff, nuevo_stock_total: row.stock_total + n, prefijo: prefijoFinal };
   }
 
   const abrirTurnoTransaction = db.transaction(({ operador, fondo_inicial, tipo_cambio_usd }) => {
@@ -536,6 +630,10 @@ function createCajaRepository(db) {
     }
 
     for (const group of expanded) {
+      const foliosAlmacen = db.prepare(`
+        SELECT COUNT(*) c FROM almacen_folios WHERE color = ? AND estado = 'disponible'
+      `).get(group.ticket.color_brazalete).c;
+      if (foliosAlmacen >= group.cantidad) continue;
       const inventario = db.prepare(
         'SELECT * FROM caja_inventario_color WHERE color = ?'
       ).get(group.ticket.color_brazalete);
@@ -594,7 +692,7 @@ function createCajaRepository(db) {
     const folios = [];
     for (const group of expanded) {
       for (let i = 0; i < group.cantidad; i += 1) {
-        const folio = nextFolio(group.ticket.prefijo || 'KL');
+        const folio = nextFolio(group.ticket.prefijo || 'KL', group.ticket.color_brazalete);
         db.prepare(`
           INSERT INTO caja_brazaletes
             (folio, venta_id, turno_id, ticket_id, nombre, color, precio, estado, creado_en, operador)
@@ -603,6 +701,11 @@ function createCajaRepository(db) {
           folio, ventaId, shift.id, group.ticket.id, group.ticket.nombre,
           group.ticket.color_brazalete, group.precio, timestamp, operator
         );
+        db.prepare(`
+          UPDATE almacen_folios
+          SET estado = 'vendido', venta_id = ?, vendido_en = ?
+          WHERE folio = ? AND estado = 'disponible'
+        `).run(ventaId, timestamp, folio);
         folios.push({
           folio,
           ticket_id: group.ticket.id,
@@ -795,6 +898,10 @@ function createCajaRepository(db) {
         SET estado = 'cancelado', cancelado_en = ?, cancelado_motivo = 'cierre_turno'
         WHERE folio = ?
       `).run(timestamp, wristband.folio);
+      db.prepare(`
+        UPDATE almacen_folios SET estado = 'cancelado'
+        WHERE folio = ? AND estado = 'vendido'
+      `).run(wristband.folio);
     }
     if (huerfanos.length > 0) {
       insertMovement({
@@ -972,6 +1079,75 @@ function createCajaRepository(db) {
     return { venta, folios, pagos };
   }
 
+  function consultarDisponibilidad(color) {
+    const colorLimpio = String(color || '').trim();
+    if (!colorLimpio) {
+      return db.prepare(`
+        SELECT
+          color,
+          COUNT(*) AS disponibles,
+          MIN(folio) AS desde,
+          MAX(folio) AS hasta,
+          MIN(numero) AS numero_desde,
+          MAX(numero) AS numero_hasta
+        FROM almacen_folios
+        WHERE estado = 'disponible'
+        GROUP BY color
+        ORDER BY color
+      `).all();
+    }
+    const rows = db.prepare(`
+      SELECT
+        color,
+        COUNT(*) AS disponibles,
+        MIN(folio) AS desde,
+        MAX(folio) AS hasta,
+        MIN(numero) AS numero_desde,
+        MAX(numero) AS numero_hasta
+      FROM almacen_folios
+      WHERE color = ? AND estado = 'disponible'
+      GROUP BY color
+    `).all(colorLimpio);
+    return rows;
+  }
+
+  function consultarArqueo(color) {
+    const colorLimpio = String(color || '').trim();
+    if (!colorLimpio) throw domainError(400, 'Indica el color para el arqueo.');
+    const ticket = db.prepare('SELECT * FROM tickets WHERE color_brazalete = ? AND activo = 1').get(colorLimpio);
+    const prefijo = ticket?.prefijo || 'KL';
+    const disponibles = db.prepare(`
+      SELECT folio, numero FROM almacen_folios
+      WHERE color = ? AND estado = 'disponible'
+      ORDER BY numero ASC
+    `).all(colorLimpio);
+    const vendidos = db.prepare(`
+      SELECT folio, numero FROM almacen_folios
+      WHERE color = ? AND estado = 'vendido'
+      ORDER BY numero ASC
+    `).all(colorLimpio);
+    const cancelados = db.prepare(`
+      SELECT folio, numero FROM almacen_folios
+      WHERE color = ? AND estado = 'cancelado'
+      ORDER BY numero ASC
+    `).all(colorLimpio);
+    const totalEnAlmacen = db.prepare(`
+      SELECT COUNT(*) c FROM almacen_folios WHERE color = ?
+    `).get(colorLimpio).c;
+    return {
+      color: colorLimpio,
+      prefijo,
+      total_en_almacen: totalEnAlmacen,
+      disponibles: disponibles.length,
+      vendidos: vendidos.length,
+      cancelados: cancelados.length,
+      folios_disponibles: disponibles.length <= 200 ? disponibles : [],
+      rango_disponible: disponibles.length > 0
+        ? { desde: disponibles[0].folio, hasta: disponibles[disponibles.length - 1].folio }
+        : null
+    };
+  }
+
   return {
     login,
     cambiarPin,
@@ -984,6 +1160,8 @@ function createCajaRepository(db) {
     listarTickets,
     obtenerInventarioColores,
     recargarStock,
+    consultarDisponibilidad,
+    consultarArqueo,
     obtenerTurnoAbierto: getOpenShift,
     abrirTurno: (payload) => abrirTurnoTransaction(payload),
     cerrarTurno: (payload) => cerrarTurnoTransaction(payload),

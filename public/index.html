@@ -276,7 +276,53 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
 .table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
 .table th{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.1em}
-.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.inv-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s ease}
+.inv-card:hover{box-shadow:0 2px 4px rgba(20,30,25,.06),0 20px 40px -28px rgba(20,30,25,.32)}
+.inv-card-head{display:flex;align-items:center;gap:14px;padding:16px 18px 12px;position:relative}
+.inv-swatch{width:42px;height:42px;border-radius:12px;flex-shrink:0;border:2px solid rgba(0,0,0,.08);box-shadow:inset 0 2px 4px rgba(0,0,0,.06)}
+.inv-card-info{flex:1;min-width:0}
+.inv-card-info h3{font-size:17px;margin:0;letter-spacing:-.01em}
+.inv-card-info .inv-type{font-size:12px;color:var(--ink-soft);margin-top:1px}
+.inv-status-badge{padding:6px 12px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.03em;white-space:nowrap}
+.inv-status-badge.ok{background:var(--brand-soft);color:var(--brand-dark)}
+.inv-status-badge.warn{background:var(--warn-soft);color:var(--warn)}
+.inv-status-badge.err{background:var(--danger-soft);color:var(--danger)}
+.inv-card-body{padding:0 18px 14px}
+.inv-stats-row{display:flex;gap:0;margin-top:6px}
+.inv-stat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--line)}
+.inv-stat:last-child{border-right:none}
+.inv-stat-val{font-family:Georgia,serif;font-size:20px;font-weight:900;line-height:1.1}
+.inv-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-top:3px;font-weight:800}
+.inv-bar-wrap{margin-top:10px}
+.inv-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-weight:800}
+.inv-bar{height:8px;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.inv-bar-fill{height:100%;border-radius:999px;transition:width .4s ease}
+.inv-bar-fill.ok{background:linear-gradient(90deg,var(--brand),var(--brand-dark))}
+.inv-bar-fill.warn{background:linear-gradient(90deg,#f0c075,var(--warn))}
+.inv-bar-fill.err{background:linear-gradient(90deg,#e88a8a,var(--danger))}
+.inv-folio-box{margin-top:10px;border-radius:10px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:8px}
+.inv-folio-box.has{background:var(--brand-soft);color:var(--brand-dark)}
+.inv-folio-box.empty{background:var(--danger-soft);color:var(--danger)}
+.inv-folio-icon{font-size:18px;flex-shrink:0}
+.inv-folio-detail{flex:1;min-width:0}
+.inv-folio-range{font-weight:900;font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px}
+.inv-folio-sub{font-size:11px;opacity:.8;margin-top:1px}
+.inv-recarga-toggle{border:1px solid var(--line);border-radius:10px;margin-top:10px;background:var(--surface-soft);overflow:hidden}
+.inv-recarga-toggle>summary{list-style:none;cursor:pointer;padding:10px 12px;font-weight:900;font-size:13px;color:var(--brand-dark);display:flex;justify-content:space-between;align-items:center;user-select:none}
+.inv-recarga-toggle>summary::-webkit-details-marker{display:none}
+.inv-recarga-toggle>summary .chev{transition:transform .15s ease;font-size:12px;color:var(--ink-soft)}
+.inv-recarga-toggle[open]>summary{border-bottom:1px solid var(--line);background:var(--surface)}
+.inv-recarga-toggle[open]>summary .chev{transform:rotate(180deg)}
+.inv-recarga-body{padding:12px;background:var(--surface)}
+.inv-recarga-body .inv-recarga-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inv-recarga-body label{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:3px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.inv-recarga-body input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface-soft);font-size:15px;font-weight:800}
+.inv-recarga-body input:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+.inv-recarga-calc{font-size:12px;min-height:18px;margin-top:6px;font-weight:800}
+.inv-recarga-btn{width:100%;margin-top:8px;background:var(--brand);color:white;border:none;border-radius:10px;padding:11px 14px;font-weight:900;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s}
+.inv-recarga-btn:hover{background:var(--brand-dark)}
+.inv-last-recarga{margin-top:8px;font-size:11px;color:var(--ink-soft);padding:0 2px}
 .corte-box{max-width:560px;margin:0 auto}
 .corte-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 .print-only{display:none}
@@ -486,8 +532,8 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
     <section class="page admin-only" id="page-inventario">
       <div class="page-wrap">
         <div class="card">
-          <span class="eyebrow">Almacén</span><h2>Stock de brazaletes por color</h2>
-          <p class="hint">Cada brazalete emitido descuenta 1 del stock físico de por vida. Los folios siguen una secuencia continua por prefijo y nunca se repiten. Cuando llegue mercancía nueva, usa "Recargar" para sumar al stock_total.</p>
+          <span class="eyebrow">Almacén</span><h2>Brazaletes por color</h2>
+          <p class="hint">Cada brazalete se rastrea por folio individual. Al recargar, registras el rango de folios; al vender, se marcan como vendidos. Expande "Recargar brazaletes" para agregar stock.</p>
           <div class="inventory-grid" id="inventoryList"></div>
         </div>
       </div>
@@ -1588,76 +1634,157 @@ async function renderInventory() {
   await loadCatalog();
   document.getElementById('inventoryList').innerHTML = inventario.map((item) => {
     const ticket = tickets.find((t) => t.color_brazalete === item.color);
-    const prefijo = ticket?.prefijo || 'XX';
     const nombre = ticket?.nombre || '';
-    const accent = (COLOR_STYLES[item.color] || {}).accent || 'var(--line)';
+    const styles = COLOR_STYLES[item.color] || {};
+    const accent = styles.accent || '#999';
+    const soft = styles.soft || '#eee';
     const disp = item.disponible;
     const cls = disp === 0 ? 'err' : disp < 20 ? 'warn' : 'ok';
-    const proximoFolio = prefijo + '-' + String((item.vendidos || 0) + 1).padStart(3, '0');
     const adentro = item.adentro ?? 0;
-    return '<div class="mini-item col" style="border-color:' + accent + ';border-width:2px;gap:6px">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center">' +
-        '<strong>' + item.color + (nombre ? ' · ' + nombre : '') + '</strong>' +
-        '<span class="badge ' + cls + '">' + disp + ' disp.</span>' +
-      '</div>' +
-      '<div class="hint">Vendidos de por vida: ' + item.vendidos + ' de ' + item.stock_total + ' · Adentro ahora: ' + adentro + '</div>' +
-      '<div class="hint" style="color:var(--text);font-weight:700">Restantes para mañana: <strong>' + disp + '</strong></div>' +
-      '<div class="hint">Prefijo <strong>' + prefijo + '</strong> · Próximo folio: <strong>' + proximoFolio + '</strong></div>' +
-      (item.ultima_recarga
-        ? '<div class="hint" style="background:var(--brand-soft);border-radius:8px;padding:5px 8px;margin-top:4px">' +
-            'Última recarga: folios <strong>' + item.ultima_recarga.folio_inicio + '</strong> al <strong>' + item.ultima_recarga.folio_fin + '</strong>' +
-            ' (' + item.ultima_recarga.cantidad + ' pzas.) · ' + fmtDate(item.ultima_recarga.timestamp) +
-          '</div>'
-        : '') +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">' +
-        '<div>' +
-          '<label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px">Folio inicio</label>' +
-          '<input type="number" min="1" step="1" placeholder="001" id="folio-inicio-' + item.color + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px" oninput="calcRecarga(\'' + item.color + '\')" />' +
+    const vendidos = item.vendidos || 0;
+    const total = item.stock_total || 0;
+    const foliosDisp = item.folios_disponibles || 0;
+    const folioDesde = item.folio_desde || '—';
+    const folioHasta = item.folio_hasta || '—';
+    const pctTotal = total > 0 ? Math.round((vendidos / total) * 100) : 0;
+    const pctDisp = total > 0 ? Math.round((disp / total) * 100) : 0;
+    const statusText = disp === 0 ? 'Agotado' : disp < 10 ? 'Crítico' : disp < 20 ? 'Bajo' : 'Disponible';
+    const folioId = 'recarga-' + item.color;
+    return '<div class="inv-card">' +
+      '<div class="inv-card-head">' +
+        '<div class="inv-swatch" style="background:' + accent + '"></div>' +
+        '<div class="inv-card-info">' +
+          '<h3>' + item.color.charAt(0).toUpperCase() + item.color.slice(1) + '</h3>' +
+          (nombre ? '<div class="inv-type">' + nombre + '</div>' : '') +
         '</div>' +
-        '<div>' +
-          '<label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px">Folio fin</label>' +
-          '<input type="number" min="1" step="1" placeholder="100" id="folio-fin-' + item.color + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px" oninput="calcRecarga(\'' + item.color + '\')" />' +
-        '</div>' +
+        '<span class="inv-status-badge ' + cls + '">' + disp + ' · ' + statusText + '</span>' +
       '</div>' +
-      '<div id="recarga-calc-' + item.color + '" style="font-size:12px;min-height:16px;margin-top:3px"></div>' +
-      '<button class="small-btn" style="margin-top:6px;width:100%" onclick="recargarStock(\'' + item.color + '\')">Recargar</button>' +
+      '<div class="inv-card-body">' +
+        '<div class="inv-stats-row">' +
+          '<div class="inv-stat"><div class="inv-stat-val" style="color:var(--brand-dark)">' + disp + '</div><div class="inv-stat-label">Disponibles</div></div>' +
+          '<div class="inv-stat"><div class="inv-stat-val">' + adentro + '</div><div class="inv-stat-label">Adentro</div></div>' +
+          '<div class="inv-stat"><div class="inv-stat-val">' + vendidos + '</div><div class="inv-stat-label">Vendidos</div></div>' +
+          '<div class="inv-stat"><div class="inv-stat-val" style="color:var(--ink-soft)">' + total + '</div><div class="inv-stat-label">Total</div></div>' +
+        '</div>' +
+        '<div class="inv-bar-wrap">' +
+          '<div class="inv-bar-label"><span>Stock disponible</span><span>' + pctDisp + '%</span></div>' +
+          '<div class="inv-bar"><div class="inv-bar-fill ' + cls + '" style="width:' + Math.max(pctDisp, 2) + '%"></div></div>' +
+        '</div>' +
+        (foliosDisp > 0
+          ? '<div class="inv-folio-box has">' +
+              '<span class="inv-folio-icon">&#128203;</span>' +
+              '<div class="inv-folio-detail">' +
+                '<div class="inv-folio-range">' + folioDesde + ' → ' + folioHasta + '</div>' +
+                '<div class="inv-folio-sub">' + foliosDisp + ' folios disponibles en almacén</div>' +
+              '</div>' +
+            '</div>'
+          : '<div class="inv-folio-box empty">' +
+              '<span class="inv-folio-icon">&#9888;</span>' +
+              '<div class="inv-folio-detail">' +
+                '<div style="font-weight:900">Sin folios en almacén</div>' +
+                '<div class="inv-folio-sub">Recarga brazaletes para comenzar</div>' +
+              '</div>' +
+            '</div>') +
+        (item.ultima_recarga
+          ? '<div class="inv-last-recarga">Última recarga: ' + item.ultima_recarga.folio_inicio + ' al ' + item.ultima_recarga.folio_fin +
+              ' (' + item.ultima_recarga.cantidad + ' pzas.) · ' + fmtDate(item.ultima_recarga.timestamp) + '</div>'
+          : '') +
+        '<details class="inv-recarga-toggle" id="' + folioId + '">' +
+          '<summary><span>+ Recargar brazaletes</span><span class="chev">&#9660;</span></summary>' +
+          '<div class="inv-recarga-body">' +
+            '<div class="inv-recarga-fields">' +
+              '<div>' +
+                '<label for="folio-inicio-' + item.color + '">Folio inicio</label>' +
+                '<input type="text" placeholder="' + (ticket?.prefijo || 'KL') + '-001" id="folio-inicio-' + item.color + '" oninput="calcRecarga(\'' + item.color + '\')" autocomplete="off" autocapitalize="characters" />' +
+              '</div>' +
+              '<div>' +
+                '<label for="folio-fin-' + item.color + '">Folio fin</label>' +
+                '<input type="text" placeholder="' + (ticket?.prefijo || 'KL') + '-100" id="folio-fin-' + item.color + '" oninput="calcRecarga(\'' + item.color + '\')" autocomplete="off" autocapitalize="characters" />' +
+              '</div>' +
+            '</div>' +
+            '<div class="inv-recarga-calc" id="recarga-calc-' + item.color + '"></div>' +
+            '<button class="inv-recarga-btn" onclick="recargarStock(\'' + item.color + '\')">&#10010; Recargar</button>' +
+          '</div>' +
+        '</details>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
+function parseFolioInput(raw) {
+  const s = (raw || '').trim().toUpperCase();
+  if (!s) return null;
+  const m = s.match(/^([A-Z]+)-(\d+)$/);
+  if (m) return { prefijo: m[1], numero: Number(m[2]) };
+  const soloNum = Number(s);
+  if (Number.isInteger(soloNum) && soloNum > 0) return { prefijo: null, numero: soloNum };
+  return null;
+}
+
 function calcRecarga(color) {
-  const inicio = Number(document.getElementById('folio-inicio-' + color)?.value);
-  const fin = Number(document.getElementById('folio-fin-' + color)?.value);
+  const inicioRaw = document.getElementById('folio-inicio-' + color)?.value;
+  const finRaw = document.getElementById('folio-fin-' + color)?.value;
   const el = document.getElementById('recarga-calc-' + color);
   if (!el) return;
-  if (inicio && fin && fin >= inicio) {
-    const n = fin - inicio + 1;
-    el.textContent = '= ' + n + ' brazalete' + (n !== 1 ? 's' : '') + ' a agregar';
-    el.style.color = 'var(--brand-dark)';
-  } else if (inicio && fin && fin < inicio) {
-    el.textContent = 'El folio fin debe ser mayor o igual al inicio';
+  if (!inicioRaw && !finRaw) { el.textContent = ''; return; }
+  const inicio = parseFolioInput(inicioRaw);
+  const fin = parseFolioInput(finRaw);
+  if (inicioRaw && !inicio) {
+    el.textContent = 'Formato inválido. Usa EXT-001 o solo número';
     el.style.color = 'var(--danger)';
+    return;
+  }
+  if (finRaw && !fin) {
+    el.textContent = 'Formato inválido. Usa EXT-100 o solo número';
+    el.style.color = 'var(--danger)';
+    return;
+  }
+  if (inicio && fin) {
+    if (inicio.prefijo && fin.prefijo && inicio.prefijo !== fin.prefijo) {
+      el.textContent = 'Los prefijos no coinciden: ' + inicio.prefijo + ' vs ' + fin.prefijo;
+      el.style.color = 'var(--danger)';
+      return;
+    }
+    if (fin.numero < inicio.numero) {
+      el.textContent = 'El folio fin debe ser mayor o igual al inicio';
+      el.style.color = 'var(--danger)';
+      return;
+    }
+    const n = fin.numero - inicio.numero + 1;
+    const pfx = inicio.prefijo || fin.prefijo || '';
+    const displayInicio = pfx ? pfx + '-' + String(inicio.numero).padStart(3, '0') : inicio.numero;
+    const displayFin = pfx ? pfx + '-' + String(fin.numero).padStart(3, '0') : fin.numero;
+    el.innerHTML = '&#10004; ' + n + ' brazalete' + (n !== 1 ? 's' : '') + ': ' + displayInicio + ' al ' + displayFin;
+    el.style.color = 'var(--brand-dark)';
   } else {
     el.textContent = '';
   }
 }
 
 async function recargarStock(color) {
-  const inicio = Number(document.getElementById('folio-inicio-' + color)?.value);
-  const fin = Number(document.getElementById('folio-fin-' + color)?.value);
-  if (!inicio) { document.getElementById('folio-inicio-' + color)?.focus(); return; }
-  if (!fin) { document.getElementById('folio-fin-' + color)?.focus(); return; }
-  if (fin < inicio) { alert('El folio fin debe ser mayor o igual al folio inicio.'); return; }
-  const cantidad = fin - inicio + 1;
-  if (!confirm('¿Agregar ' + cantidad + ' brazaletes ' + color + ' (folios ' + inicio + ' al ' + fin + ') al inventario?')) return;
+  const inicioRaw = document.getElementById('folio-inicio-' + color)?.value;
+  const finRaw = document.getElementById('folio-fin-' + color)?.value;
+  if (!inicioRaw?.trim()) { document.getElementById('folio-inicio-' + color)?.focus(); return; }
+  if (!finRaw?.trim()) { document.getElementById('folio-fin-' + color)?.focus(); return; }
+  const inicio = parseFolioInput(inicioRaw);
+  const fin = parseFolioInput(finRaw);
+  if (!inicio) { alert('Folio inicio inválido. Usa formato como EXT-001 o un número.'); return; }
+  if (!fin) { alert('Folio fin inválido. Usa formato como EXT-100 o un número.'); return; }
+  if (inicio.prefijo && fin.prefijo && inicio.prefijo !== fin.prefijo) {
+    alert('Los prefijos no coinciden (' + inicio.prefijo + ' vs ' + fin.prefijo + ').'); return;
+  }
+  if (fin.numero < inicio.numero) { alert('El folio fin debe ser mayor o igual al folio inicio.'); return; }
+  const cantidad = fin.numero - inicio.numero + 1;
+  const pfx = inicio.prefijo || fin.prefijo || '';
+  const folioStr = pfx ? pfx + '-' + String(inicio.numero).padStart(3, '0') + ' al ' + pfx + '-' + String(fin.numero).padStart(3, '0') : inicio.numero + ' al ' + fin.numero;
+  if (!confirm('¿Agregar ' + cantidad + ' brazaletes ' + color + ' (folios ' + folioStr + ') al inventario?')) return;
   try {
     await api('/api/caja/inventario/recargar', {
       method: 'POST',
-      body: JSON.stringify({ color, folio_inicio: inicio, folio_fin: fin })
+      body: JSON.stringify({ color, folio_inicio: inicioRaw.trim(), folio_fin: finRaw.trim() })
     });
-    document.getElementById('folio-inicio-' + color).value = '';
-    document.getElementById('folio-fin-' + color).value = '';
-    document.getElementById('recarga-calc-' + color).textContent = '';
+    const details = document.getElementById('recarga-' + color);
+    if (details) details.removeAttribute('open');
     await loadCatalog();
     await renderInventory();
   } catch (e) {
