@@ -930,6 +930,48 @@ function createCajaRepository(db) {
     }));
   }
 
+  function listarVentas({ turno_id, desde, hasta, limite = 200 } = {}) {
+    const condiciones = [];
+    const params = [];
+    if (turno_id) {
+      condiciones.push('v.turno_id = ?');
+      params.push(Number(turno_id));
+    }
+    if (desde) {
+      condiciones.push('v.creada_en >= ?');
+      params.push(Number(desde));
+    }
+    if (hasta) {
+      condiciones.push('v.creada_en <= ?');
+      params.push(Number(hasta));
+    }
+    const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+    const ventas = db.prepare(`
+      SELECT v.*, COUNT(b.folio) AS num_folios
+      FROM caja_ventas v
+      LEFT JOIN caja_brazaletes b ON b.venta_id = v.id
+      ${where}
+      GROUP BY v.id
+      ORDER BY v.creada_en DESC
+      LIMIT ?
+    `).all(...params, limite);
+    return ventas;
+  }
+
+  function obtenerVentaDetalle(ventaId) {
+    const venta = db.prepare('SELECT * FROM caja_ventas WHERE id = ?').get(ventaId);
+    if (!venta) throw domainError(404, 'La venta no existe.');
+    const folios = db.prepare(`
+      SELECT folio, nombre, color, precio, estado, creado_en
+      FROM caja_brazaletes WHERE venta_id = ? ORDER BY folio ASC
+    `).all(ventaId);
+    const pagos = db.prepare(`
+      SELECT metodo, monto_mxn, monto_origen, tipo_cambio, monto_recibido, cambio
+      FROM caja_venta_pagos WHERE venta_id = ?
+    `).all(ventaId);
+    return { venta, folios, pagos };
+  }
+
   return {
     login,
     cambiarPin,
@@ -951,7 +993,9 @@ function createCajaRepository(db) {
     obtenerCorteDeTurno,
     obtenerDashboard,
     obtenerHistorialTurno: (turnoId, limite) => obtenerHistorialTurno(turnoId ?? getOpenShift()?.id, limite),
-    listarTurnosCerrados
+    listarTurnosCerrados,
+    listarVentas,
+    obtenerVentaDetalle
   };
 }
 

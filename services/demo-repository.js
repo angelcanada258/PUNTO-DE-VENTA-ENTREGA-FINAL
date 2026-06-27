@@ -65,6 +65,8 @@ function createDemoRepository() {
     abrirTurno: async () => fakeShift(),
     cerrarTurno: async () => ({ ...fakeShift(), cerrado_en: Date.now(), estado: 'cerrado', efectivo_esperado: 0, efectivo_contado: 0, diferencia: 0 }),
     listarTurnosCerrados: async () => [],
+    listarVentas: async () => [],
+    obtenerVentaDetalle: async () => ({ venta: null, folios: [], pagos: [] }),
 
     crearVenta: async ({ items = [], pagos = [] }) => ({
       venta: { id: Date.now(), total: items.reduce((s, i) => s + (Number(i.precio) || 0) * (Number(i.cantidad) || 0), 0) },

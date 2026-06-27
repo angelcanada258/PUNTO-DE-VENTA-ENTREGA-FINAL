@@ -231,6 +231,30 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
 .declarado-list td.warn{color:var(--warn);font-weight:800}
 .declarado-list td.err{color:var(--danger);font-weight:800}
 @media(max-width:860px){.declarado-panel{grid-template-columns:1fr}}
+
+.depmov-label{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7a8580;font-weight:800;margin-top:8px;margin-bottom:5px}
+.depmov-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.depmov-toggle button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:9px;font-size:13px;font-weight:900;color:#3c4742;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.depmov-toggle button svg{width:16px;height:16px}
+.depmov-toggle button.active{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark)}
+.depmov-display{background:var(--surface-soft);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:22px;font-weight:900;text-align:center;font-family:Georgia,serif;color:var(--brand-dark)}
+.depmov-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.depmov-keys button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 0;font-size:15px;font-weight:800;cursor:pointer}
+.depmov-keys button:hover{background:var(--surface-soft)}
+.depmov-keys .key-back{color:var(--danger)}
+
+.cuentas-filters{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:10px;align-items:end;margin-top:12px}
+.cuentas-filters .control-field{margin-top:0}
+.cuentas-panel{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;margin-top:14px}
+.cuentas-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto}
+.cuentas-row{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:var(--surface)}
+.cuentas-row:hover{background:var(--surface-soft)}
+.cuentas-row.active{border-color:var(--brand);background:var(--brand-soft)}
+.cuentas-row .top{display:flex;justify-content:space-between;font-weight:900;font-size:14px;color:var(--brand-dark)}
+.cuentas-detalle{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface)}
+.cuentas-detalle table{width:100%;border-collapse:collapse;font-size:13px}
+.cuentas-detalle th,.cuentas-detalle td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+@media(max-width:860px){.cuentas-filters{grid-template-columns:1fr 1fr}.cuentas-panel{grid-template-columns:1fr}}
 .add-user-toggle{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);overflow:hidden}
 .add-user-toggle>summary{list-style:none;cursor:pointer;padding:11px 14px;font-weight:900;font-size:13px;color:var(--brand-dark);display:flex;justify-content:space-between;align-items:center;user-select:none}
 .add-user-toggle>summary::-webkit-details-marker{display:none}
@@ -367,11 +391,9 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
             <div class="aforo-head">
               <div>
                 <span class="eyebrow">Aforo en vivo</span>
-                <div class="aforo-num"><strong id="dashAforoNow">0</strong><span class="aforo-max"> / <span id="dashAforoMax">50</span></span></div>
+                <div class="aforo-num"><strong id="dashAforoNow">0</strong></div>
               </div>
-              <div class="aforo-badge" id="dashAforoBadge">0%</div>
             </div>
-            <div class="aforo-bar"><div class="aforo-bar-fill" id="dashAforoBar"></div></div>
             <div class="hint" id="dashAforoHint">Personas dentro de la laguna ahora mismo.</div>
           </div>
 
@@ -476,19 +498,43 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
         <div class="card">
           <span class="eyebrow">Movimientos de caja</span><h2>Depósitos y retiros</h2>
           <p class="hint">Registra ingresos extra (depósito) o salidas de efectivo (retiro: hielo, suministros, etc.).</p>
-          <div class="segmented" style="margin-top:12px;grid-template-columns:repeat(2,1fr)">
-            <button id="cajaMovTipoDep" class="active" type="button" onclick="setCajaMovTipo('deposito')">Depósito (+)</button>
-            <button id="cajaMovTipoRet" type="button" onclick="setCajaMovTipo('retiro')">Retiro (−)</button>
+
+          <span class="depmov-label">Tipo de operación</span>
+          <div class="depmov-toggle">
+            <button id="cajaMovTipoRet" type="button" onclick="setCajaMovTipo('retiro')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M12 9.5v-3M9 9.5h6M9 4h6"/></svg>
+              RETIRO
+            </button>
+            <button id="cajaMovTipoDep" class="active" type="button" onclick="setCajaMovTipo('deposito')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M12 9.5v-3M9 9.5h6M9 4h6"/></svg>
+              DEPÓSITO
+            </button>
           </div>
+
           <div class="control-field">
-            <label for="cajaMovMonto">Monto MXN</label>
-            <input id="cajaMovMonto" type="number" min="1" step="1" placeholder="0" />
-          </div>
-          <div class="control-field">
-            <label for="cajaMovDesc">Descripción</label>
+            <label for="cajaMovDesc">Concepto de la operación</label>
             <input id="cajaMovDesc" type="text" placeholder="Ej. Compra de hielo" />
           </div>
-          <button class="btn-primary" onclick="registrarCajaMov()"><span>Registrar movimiento</span><span>+</span></button>
+
+          <span class="depmov-label" style="margin-top:14px">Importe</span>
+          <div class="depmov-display" id="cajaMovDisplay">$0.00</div>
+
+          <div class="depmov-keys">
+            <button type="button" onclick="cajaMovDigit('1')">1</button>
+            <button type="button" onclick="cajaMovDigit('2')">2</button>
+            <button type="button" onclick="cajaMovDigit('3')">3</button>
+            <button type="button" onclick="cajaMovDigit('4')">4</button>
+            <button type="button" onclick="cajaMovDigit('5')">5</button>
+            <button type="button" onclick="cajaMovDigit('6')">6</button>
+            <button type="button" onclick="cajaMovDigit('7')">7</button>
+            <button type="button" onclick="cajaMovDigit('8')">8</button>
+            <button type="button" onclick="cajaMovDigit('9')">9</button>
+            <button type="button" onclick="cajaMovDigit('.')">.</button>
+            <button type="button" onclick="cajaMovDigit('0')">0</button>
+            <button type="button" class="key-back" onclick="cajaMovBack()">⌫</button>
+          </div>
+
+          <button class="btn-primary" onclick="registrarCajaMov()"><span>Aceptar</span><span>+</span></button>
           <p class="hint-line" id="cajaMovHint"></p>
           <h3 style="margin:18px 0 8px;font-size:14px">Movimientos del turno</h3>
           <div id="cajaMovList"></div>
@@ -588,6 +634,32 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
           <p class="hint">Resumen de cada turno cerrado: ventas totales y diferencia de caja.</p>
           <div id="pastShiftsList" style="margin-top:14px"></div>
         </div>
+        <div class="card" style="margin-top:16px" id="cuentasCard">
+          <span class="eyebrow">Trazabilidad</span><h2>Consulta de cuentas</h2>
+          <p class="hint">Busca una venta por turno o por fecha y revisa sus folios de brazaletes y la forma de pago.</p>
+          <div class="cuentas-filters">
+            <div class="segmented" id="cuentasAlcance" style="grid-template-columns:repeat(2,1fr)">
+              <button type="button" class="active" data-alcance="turno" onclick="setCuentasAlcance('turno')">Turno actual</button>
+              <button type="button" data-alcance="todos" onclick="setCuentasAlcance('todos')">Todos</button>
+            </div>
+            <div class="control-field">
+              <label for="cuentasDesde">Desde</label>
+              <input id="cuentasDesde" type="date" />
+            </div>
+            <div class="control-field">
+              <label for="cuentasHasta">Hasta</label>
+              <input id="cuentasHasta" type="date" />
+            </div>
+            <button class="btn-secondary" style="margin:0" onclick="buscarCuentas()">Buscar</button>
+          </div>
+          <p class="hint-line" id="cuentasFiltroActivo" style="margin-top:8px"></p>
+          <div class="cuentas-panel">
+            <div class="cuentas-list" id="cuentasList"></div>
+            <div class="cuentas-detalle" id="cuentasDetalle">
+              <div class="empty">Selecciona una cuenta de la lista.</div>
+            </div>
+          </div>
+        </div>
         <div class="card" style="margin-top:16px">
           <span class="eyebrow">Trazabilidad</span><h2>Historial del turno actual</h2>
           <div style="overflow:auto"><table class="table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Método</th><th>Monto</th></tr></thead><tbody id="historyRows"></tbody></table></div>
@@ -671,6 +743,7 @@ let selectedPaymentMethod = 'efectivo';
 let lastTicket = null;
 let lastCorte = null;
 let cajaMovTipo = 'deposito';
+let cajaMovBuffer = '0';
 let corteStep = 1;
 let declaradoValues = {};
 let declaradoActivo = 'efectivo';
@@ -1467,8 +1540,48 @@ async function printAndNewSale() {
 
 async function renderDashboard() {
   const dashboard = await api('/api/caja/dashboard');
-  document.getElementById('dashEntradas').textContent = dashboard.entradas || 0;
-  document.getElementById('dashCobrado').textContent = money(dashboard.cobrado || 0);
+
+  document.getElementById('dashAforoNow').textContent = dashboard.adentro || 0;
+
+  const lastSale = document.getElementById('dashLastSale');
+  const lastSaleAbs = document.getElementById('dashLastSaleAbs');
+  if (dashboard.ultima_venta_ts) {
+    lastSale.textContent = new Date(dashboard.ultima_venta_ts).toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' });
+    lastSaleAbs.textContent = fmtDate(dashboard.ultima_venta_ts);
+  } else {
+    lastSale.textContent = '—';
+    lastSaleAbs.textContent = 'Sin ventas todavía en este turno.';
+  }
+  document.getElementById('dashShiftInfo').textContent = dashboard.turno_abierto
+    ? 'Turno #' + dashboard.turno_id + ' · ' + dashboard.operador + ' · abierto ' + fmtDate(dashboard.abierto_en)
+    : 'Sin turno abierto.';
+
+  document.getElementById('dashStats').innerHTML =
+    statCardHtml('Ventas cobradas', dashboard.ventas_cobradas || 0) +
+    statCardHtml('Total cobrado', money(dashboard.cobrado || 0)) +
+    statCardHtml('Ticket promedio', money(dashboard.ticket_promedio || 0)) +
+    statCardHtml('Brazaletes vendidos', dashboard.entradas || 0) +
+    statCardHtml('Cortesías', (dashboard.cortesias?.cantidad || 0) + ' · ' + money(dashboard.cortesias?.valor_comercial || 0)) +
+    statCardHtml('USD acumulado', moneyUsd(dashboard.usd_acumulado || 0));
+
+  const metodos = Object.entries(dashboard.mix_pagos || {}).sort((a, b) => b[1].mxn - a[1].mxn);
+  document.getElementById('dashMixPagos').innerHTML = metodos.length
+    ? '<table class="table"><thead><tr><th>Método</th><th>Pagos</th><th>Importe MXN</th></tr></thead><tbody>' +
+        metodos.map(([m, d]) =>
+          '<tr><td>' + paymentLabel(m) + '</td><td>' + d.conteo + '</td><td>' + money(d.mxn) + '</td></tr>'
+        ).join('') +
+      '</tbody></table>'
+    : '<div class="empty">Sin pagos registrados todavía en este turno.</div>';
+
+  const bajos = dashboard.inventario_bajo || [];
+  document.getElementById('dashStockAlertas').innerHTML = bajos.length
+    ? bajos.map((b) => {
+        const cls = b.disponible === 0 ? 'err' : 'warn';
+        return '<div class="mini-item col">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px"><strong>' + b.color + '</strong><span class="badge ' + cls + '">' + b.disponible + ' disp.</span></div>' +
+        '</div>';
+      }).join('')
+    : '<div class="empty">Todos los colores tienen stock saludable.</div>';
 }
 
 async function renderInventory() {
@@ -1749,9 +1862,26 @@ function setCajaMovTipo(tipo) {
   document.getElementById('cajaMovTipoRet').classList.toggle('active', tipo === 'retiro');
 }
 
+function cajaMovRenderDisplay() {
+  const display = document.getElementById('cajaMovDisplay');
+  if (display) display.textContent = '$' + (Number(cajaMovBuffer) || 0).toFixed(2);
+}
+
+function cajaMovDigit(d) {
+  if (d === '.' && cajaMovBuffer.includes('.')) return;
+  if (cajaMovBuffer === '0' && d !== '.') cajaMovBuffer = d;
+  else cajaMovBuffer += d;
+  cajaMovRenderDisplay();
+}
+
+function cajaMovBack() {
+  cajaMovBuffer = cajaMovBuffer.slice(0, -1);
+  if (cajaMovBuffer === '' || cajaMovBuffer === '-') cajaMovBuffer = '0';
+  cajaMovRenderDisplay();
+}
+
 async function registrarCajaMov() {
   const hint = document.getElementById('cajaMovHint');
-  const montoInput = document.getElementById('cajaMovMonto');
   const descInput = document.getElementById('cajaMovDesc');
   try {
     await api('/api/caja/movimientos', {
@@ -1759,11 +1889,12 @@ async function registrarCajaMov() {
       body: JSON.stringify({
         operador: session.usuario,
         tipo: cajaMovTipo,
-        monto: montoInput.value,
+        monto: cajaMovBuffer,
         concepto: descInput.value
       })
     });
-    montoInput.value = '';
+    cajaMovBuffer = '0';
+    cajaMovRenderDisplay();
     descInput.value = '';
     hint.textContent = '';
     await renderCorte();
@@ -1887,12 +2018,129 @@ async function renderHistory() {
     ? cerrados.turnos.map((t) => {
         const diff = t.diferencia ?? 0;
         const cls = diff === 0 ? 'ok' : diff < 0 ? 'err' : 'warn';
-        return '<div class="mini-item col">' +
+        return '<div class="mini-item col" style="cursor:pointer" onclick="abrirCuentasDeTurno(' + t.id + ')">' +
           '<div style="display:flex;justify-content:space-between;gap:10px"><strong>Turno #' + t.id + ' · ' + t.operador_apertura + '</strong><span class="badge ' + cls + '">' + (diff > 0 ? '+' : '') + money(diff) + '</span></div>' +
           '<div class="hint">' + fmtDate(t.abierto_en) + ' a ' + fmtDate(t.cerrado_en) + ' · Ventas: ' + money(t.totales.totalVentas) + ' · Efectivo esperado: ' + money(t.efectivo_esperado) + ' · Contado: ' + money(t.efectivo_contado) + '</div>' +
         '</div>';
       }).join('')
     : '<div class="empty">Sin turnos cerrados todavía.</div>';
+
+  await buscarCuentas();
+}
+
+let cuentasAlcance = 'turno';
+let cuentasTurnoEspecifico = null;
+let cuentaDetalleActual = null;
+
+function setCuentasAlcance(alcance) {
+  cuentasAlcance = alcance;
+  cuentasTurnoEspecifico = null;
+  document.querySelectorAll('#cuentasAlcance button').forEach((b) => b.classList.toggle('active', b.dataset.alcance === alcance));
+  buscarCuentas();
+}
+
+function abrirCuentasDeTurno(turnoId) {
+  cuentasTurnoEspecifico = turnoId;
+  document.querySelectorAll('#cuentasAlcance button').forEach((b) => b.classList.remove('active'));
+  buscarCuentas();
+  document.getElementById('cuentasCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function buscarCuentas() {
+  const list = document.getElementById('cuentasList');
+  const detalle = document.getElementById('cuentasDetalle');
+  const filtroActivo = document.getElementById('cuentasFiltroActivo');
+  list.innerHTML = '<div class="empty">Buscando…</div>';
+  detalle.innerHTML = '<div class="empty">Selecciona una cuenta de la lista.</div>';
+  const params = new URLSearchParams();
+  if (cuentasTurnoEspecifico) {
+    params.set('turno_id', cuentasTurnoEspecifico);
+    filtroActivo.textContent = 'Mostrando cuentas del turno #' + cuentasTurnoEspecifico;
+  } else if (cuentasAlcance === 'turno' && turno) {
+    params.set('turno_id', turno.id);
+    filtroActivo.textContent = 'Mostrando cuentas del turno actual (#' + turno.id + ')';
+  } else {
+    filtroActivo.textContent = 'Mostrando cuentas de todos los turnos';
+  }
+  const desdeInput = document.getElementById('cuentasDesde').value;
+  const hastaInput = document.getElementById('cuentasHasta').value;
+  if (desdeInput) params.set('desde', new Date(desdeInput + 'T00:00:00').getTime());
+  if (hastaInput) params.set('hasta', new Date(hastaInput + 'T23:59:59').getTime());
+  try {
+    const data = await api('/api/caja/ventas?' + params.toString());
+    renderCuentasList(data.ventas);
+  } catch (e) {
+    list.innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function renderCuentasList(ventas) {
+  const list = document.getElementById('cuentasList');
+  list.innerHTML = ventas.length
+    ? ventas.map((v) => (
+        '<div class="cuentas-row" onclick="seleccionarCuenta(' + v.id + ', this)">' +
+          '<div class="top"><span>Folio #' + v.id + '</span><span>' + money(v.total) + '</span></div>' +
+          '<div class="hint">' + fmtDate(v.creada_en) + ' · ' + v.operador + ' · ' + v.num_folios + ' brazalete(s)' + (v.es_cortesia ? ' · Cortesía' : '') + '</div>' +
+        '</div>'
+      )).join('')
+    : '<div class="empty">Sin cuentas para este filtro.</div>';
+}
+
+async function seleccionarCuenta(ventaId, el) {
+  document.querySelectorAll('.cuentas-row').forEach((r) => r.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const detalle = document.getElementById('cuentasDetalle');
+  detalle.innerHTML = '<div class="empty">Cargando…</div>';
+  try {
+    const data = await api('/api/caja/ventas/' + ventaId);
+    renderCuentaDetalle(data);
+  } catch (e) {
+    detalle.innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function renderCuentaDetalle(data) {
+  const { venta, folios, pagos } = data;
+  const detalle = document.getElementById('cuentasDetalle');
+  detalle.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">' +
+      '<strong>Folio #' + venta.id + '</strong><span class="hint">' + fmtDate(venta.creada_en) + '</span>' +
+    '</div>' +
+    '<p class="hint" style="margin-bottom:10px">Cajero: ' + venta.operador + (venta.es_cortesia ? ' · Cortesía (' + (venta.motivo_cortesia || '—') + ')' : '') + '</p>' +
+    '<table><thead><tr><th>Folio</th><th>Brazalete</th><th>Color</th><th>Precio</th></tr></thead><tbody>' +
+      (folios.length
+        ? folios.map((f) => '<tr><td>' + f.folio + '</td><td>' + f.nombre + '</td><td>' + f.color + '</td><td>' + money(f.precio) + '</td></tr>').join('')
+        : '<tr><td colspan="4"><div class="empty">Sin folios.</div></td></tr>') +
+    '</tbody></table>' +
+    '<table style="margin-top:12px"><thead><tr><th>Forma de pago</th><th>Importe</th></tr></thead><tbody>' +
+      (pagos.length
+        ? pagos.map((p) => '<tr><td>' + paymentLabel(p.metodo) + '</td><td>' + (p.metodo === 'dolar' && p.monto_origen ? moneyUsd(p.monto_origen) : money(p.monto_mxn)) + '</td></tr>').join('')
+        : '<tr><td colspan="2"><div class="empty">Sin pagos.</div></td></tr>') +
+    '</tbody></table>' +
+    '<div class="total-row big" style="margin-top:12px"><span>Total</span><span>' + money(venta.total) + '</span></div>' +
+    '<button class="btn-secondary" style="margin-top:14px;width:100%" onclick="imprimirCuentaSeleccionada()">Imprimir ticket</button>';
+  cuentaDetalleActual = data;
+}
+
+async function imprimirCuentaSeleccionada() {
+  const data = cuentaDetalleActual;
+  if (!data) return;
+  const { venta, folios, pagos } = data;
+  const metodoUnico = pagos.length === 1 ? pagos[0].metodo : 'varios';
+  const ticket = {
+    saleId: 'Venta #' + venta.id,
+    folios,
+    total: venta.total,
+    totalUsd: venta.total_usd,
+    method: metodoUnico,
+    label: pagos.length === 1 ? paymentLabel(pagos[0].metodo) : 'Pagos mixtos',
+    payments: pagos,
+    cambio: pagos.reduce((sum, p) => sum + (p.cambio || 0), 0),
+    operador: venta.operador,
+    turnoId: venta.turno_id
+  };
+  document.getElementById('printTicket').innerHTML = buildTicketHtml(ticket);
+  await doPrint();
 }
 
 let newUserRole = 'cajera';

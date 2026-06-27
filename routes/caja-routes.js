@@ -191,6 +191,29 @@ function createCajaRouter(repository, opciones = {}) {
     }
   });
 
+  router.get('/ventas', async (req, res, next) => {
+    try {
+      const ventas = await repository.listarVentas({
+        turno_id: req.query.turno_id ? Number(req.query.turno_id) : undefined,
+        desde: req.query.desde ? Number(req.query.desde) : undefined,
+        hasta: req.query.hasta ? Number(req.query.hasta) : undefined,
+        limite: req.query.limite ? Number(req.query.limite) : undefined
+      });
+      res.json({ success: true, ventas });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/ventas/:id', async (req, res, next) => {
+    try {
+      const detalle = await repository.obtenerVentaDetalle(Number(req.params.id));
+      res.json({ success: true, ...detalle });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post('/movimientos', async (req, res, next) => {
     try {
       const corte = await repository.registrarMovimientoCaja({
