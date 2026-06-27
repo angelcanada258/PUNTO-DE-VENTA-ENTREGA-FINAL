@@ -620,6 +620,11 @@ button,input,select{font:inherit} :focus-visible{outline:2px solid var(--brand);
             <div id="corteBrazaletes" style="margin-top:10px;overflow:auto"></div>
           </div>
 
+          <div class="card" style="margin-top:16px">
+            <span class="eyebrow">Movimientos</span><h2>Depósitos y retiros</h2>
+            <div id="corteMovimientos" style="margin-top:10px"></div>
+          </div>
+
           <div class="corte-actions" style="margin-top:18px">
             <button class="btn-primary" style="margin:0;flex:1" onclick="corteGoTo(2)"><span>Continuar al cierre</span><span>→</span></button>
           </div>
@@ -925,6 +930,18 @@ async function initApp() {
     if (btnSalir) btnSalir.hidden = false;
     const exitPin = document.getElementById('exitPin');
     if (exitPin) exitPin.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmarSalir(); });
+    if (window.electronAPI.onConfirmQuit) {
+      window.electronAPI.onConfirmQuit(() => {
+        const overlay = document.getElementById('exitOverlay');
+        if (overlay && !overlay.classList.contains('active')) {
+          overlay.classList.add('active');
+          const exitPin2 = document.getElementById('exitPin');
+          if (exitPin2) exitPin2.value = '';
+          const err2 = document.getElementById('exitError');
+          if (err2) { err2.style.display = 'none'; err2.textContent = ''; }
+        }
+      });
+    }
   }
 
   if (!session) {
@@ -1860,6 +1877,7 @@ async function renderCorte() {
     : '<div class="empty">Sin brazaletes vendidos en este turno.</div>';
 
   renderCajaMovs(corte.movimientos_caja);
+  renderCorteMovimientos(corte.movimientos_caja, corte.depositos, corte.retiros);
   declaradoValues = {};
   DECLARADO_METODOS.forEach((m) => { declaradoValues[m.key] = 0; });
   declaradoActivo = 'efectivo';
@@ -2011,7 +2029,7 @@ async function registrarCajaMov() {
   const hint = document.getElementById('cajaMovHint');
   const descInput = document.getElementById('cajaMovDesc');
   try {
-    await api('/api/caja/movimientos', {
+    const result = await api('/api/caja/movimientos', {
       method: 'POST',
       body: JSON.stringify({
         operador: session.usuario,
@@ -2026,6 +2044,12 @@ async function registrarCajaMov() {
     hint.textContent = '';
     await renderCorte();
     await renderHistory();
+    renderDepositos();
+    if (result.movimiento) {
+      lastCorte = result.corte || lastCorte;
+      document.getElementById('printTicket').innerHTML = buildMovimientoTicketHtml(result.movimiento);
+      await doPrint();
+    }
   } catch (e) {
     hint.textContent = e.message;
   }
@@ -2037,10 +2061,61 @@ function renderCajaMovs(movimientos) {
         const sign = m.tipo === 'deposito' ? '+' : '−';
         const color = m.tipo === 'deposito' ? 'var(--brand-dark)' : 'var(--danger)';
         const label = m.tipo === 'deposito' ? 'Depósito' : 'Retiro';
-        return '<div class="mini-item col"><div style="display:flex;justify-content:space-between;gap:10px"><strong>' + label + '</strong><strong style="color:' + color + '">' + sign + money(m.monto) + '</strong></div><div class="hint">' + (m.concepto || '—') + ' · ' + fmtDate(m.timestamp) + '</div></div>';
+        return '<div class="mini-item col"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>' + label + '</strong><div style="display:flex;align-items:center;gap:6px"><strong style="color:' + color + '">' + sign + money(m.monto) + '</strong><button type="button" class="btn-icon" onclick="printMovimiento(' + m.id + ')" title="Imprimir ticket" style="color:var(--brand-dark);background:none;border:1px solid var(--brand-dark);border-radius:6px;padding:2px 6px;font-size:13px;cursor:pointer">🖨</button></div></div><div class="hint">' + (m.concepto || '—') + ' · ' + fmtDate(m.timestamp) + '</div></div>';
       }).join('')
     : '<div class="empty">Sin depósitos ni retiros en este turno.</div>';
   document.getElementById('cajaMovList').innerHTML = html;
+  }
+
+function renderCorteMovimientos(movimientos, depositos, retiros) {
+  const el = document.getElementById('corteMovimientos');
+  if (!el) return;
+  if (!movimientos.length) {
+    el.innerHTML = '<div class="empty">Sin depósitos ni retiros en este turno.</div>';
+    return;
+  }
+  const lrow = (m) => {
+    const sign = m.tipo === 'deposito' ? '+' : '−';
+    const color = m.tipo === 'deposito' ? 'var(--brand-dark)' : 'var(--danger)';
+    const label = m.tipo === 'deposito' ? 'Depósito' : 'Retiro';
+    return '<div class="mini-item" style="display:flex;align-items:center;gap:10px">' +
+      '<div style="flex:1"><strong style="color:' + color + '">' + sign + ' ' + label + '</strong><div class="hint">' + (m.concepto || '—') + ' · ' + fmtDate(m.timestamp) + '</div></div>' +
+      '<strong style="color:' + color + '">' + sign + money(m.monto) + '</strong>' +
+      '<button type="button" class="btn-icon" onclick="printMovimiento(' + m.id + ')" title="Imprimir ticket" style="margin-left:4px;color:var(--brand-dark);background:none;border:1px solid var(--brand-dark);border-radius:6px;padding:4px 8px;font-size:13px;cursor:pointer">🖨</button>' +
+      '</div>';
+  };
+  el.innerHTML =
+    movimientos.map(lrow).join('') +
+    '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)" class="mini-item" style="display:flex;justify-content:space-between">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;flex:1"><span>Total depósitos</span><strong style="color:var(--brand-dark)">+' + money(depositos) + '</strong></div>' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;flex:1;margin-left:16px"><span>Total retiros</span><strong style="color:var(--danger)">−' + money(retiros) + '</strong></div>' +
+    '</div>';
+}
+
+function buildMovimientoTicketHtml(mov) {
+  const label = mov.tipo === 'deposito' ? 'DEPÓSITO' : 'RETIRO';
+  const sign = mov.tipo === 'deposito' ? '+' : '−';
+  const d = new Date(mov.timestamp).toLocaleString('es-MX');
+  return '<div class="print-header"><h1>LAGUNA KAAN LUUM</h1><div>Tulum, Quintana Roo</div><div class="print-line"></div></div>' +
+    '<div style="font-weight:bold;font-size:16px;text-align:center;margin:8px 0">' + label + '</div>' +
+    '<div class="print-line"></div>' +
+    '<div class="print-row"><span>Fecha:</span><span>' + d + '</span></div>' +
+    '<div class="print-row"><span>Turno:</span><span>#' + mov.turno_id + '</span></div>' +
+    '<div class="print-row"><span>Operador:</span><span>' + mov.operador + '</span></div>' +
+    '<div class="print-row"><span>Concepto:</span><span>' + (mov.concepto || '—') + '</span></div>' +
+    '<div class="print-line"></div>' +
+    '<div class="print-total print-row"><span>MONTO:</span><span>' + sign + money(mov.monto) + '</span></div>' +
+    '<div class="print-row"><span>Método:</span><span>Efectivo</span></div>' +
+    '<div class="print-line"></div>' +
+    '<div style="text-align:center;font-size:10px;margin-top:10px">ID: ' + mov.id + '<br/>Kaan Luum POS</div>';
+}
+
+async function printMovimiento(movId) {
+  if (!lastCorte) return;
+  const mov = (lastCorte.movimientos_caja || []).find(m => m.id === movId);
+  if (!mov) return;
+  document.getElementById('printTicket').innerHTML = buildMovimientoTicketHtml(mov);
+  await doPrint();
 }
 
 async function printCorte() {

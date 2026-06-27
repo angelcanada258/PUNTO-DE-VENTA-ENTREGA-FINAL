@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 // ── Puerto del servidor Express ──────────────────────────────────────────────
-const PORT = 3000;
+const PORT = 4000;
 
 // ── Variables globales ───────────────────────────────────────────────────────
 let mainWindow = null;
@@ -34,8 +34,10 @@ if (!gotTheLock) {
 // En la app instalada queda visible: <directorio del exe>/datos/. En desarrollo
 // (npm run electron) se usa <proyecto>/datos-dev/ para no contaminar repo.
 function resolveDataDir() {
-  if (app.isPackaged) return path.join(path.dirname(process.execPath), 'datos');
-  return path.join(__dirname, 'datos-dev');
+  if (!app.isPackaged) return path.join(__dirname, 'datos-dev');
+  const portableDir = process.env.PORTABLE_EXECUTABLE_DIR;
+  if (portableDir) return path.join(portableDir, 'datos');
+  return path.join(path.dirname(process.execPath), 'datos');
 }
 
 // Si existe la BD en la ubicación vieja (%APPDATA%/Kaan Luum POS/) y la nueva
@@ -149,6 +151,13 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
+
+  mainWindow.on('close', (e) => {
+    if (mainWindow) {
+      e.preventDefault();
+      mainWindow.webContents.send('confirm-quit');
+    }
+  });
 }
 
 // ── 4. IPC: impresión silenciosa ─────────────────────────────────────────────
@@ -171,6 +180,9 @@ ipcMain.handle('silent-print', async () => {
 // ── 5. IPC: salir de la aplicación (botón "Salir" protegido con PIN admin) ────
 // El frontend valida el PIN de administrador ANTES de invocar esto.
 ipcMain.handle('quit-app', async () => {
+  if (mainWindow) {
+    mainWindow.destroy();
+  }
   app.quit();
   return { ok: true };
 });
@@ -184,6 +196,13 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   app.quit();
+});
+
+app.on('before-quit', () => {
+  try {
+    const db = require('./database.js').getDefaultRepository();
+    if (db && db.close) db.close();
+  } catch (e) { /* ignorar */ }
 });
 
 app.on('activate', () => {

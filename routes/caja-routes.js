@@ -235,13 +235,13 @@ function createCajaRouter(repository, opciones = {}) {
 
   router.post('/movimientos', async (req, res, next) => {
     try {
-      const corte = await repository.registrarMovimientoCaja({
+      const result = await repository.registrarMovimientoCaja({
         operador: req.body?.operador,
         tipo: req.body?.tipo,
         monto: req.body?.monto,
         concepto: req.body?.concepto
       });
-      res.status(201).json({ success: true, corte });
+      res.status(201).json({ success: true, movimiento: result.movimiento, corte: result.corte });
     } catch (error) {
       next(error);
     }

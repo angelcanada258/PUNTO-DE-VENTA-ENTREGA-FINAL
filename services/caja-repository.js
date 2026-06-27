@@ -754,15 +754,18 @@ function createCajaRepository(db) {
     }
     const desc = String(concepto || '').trim();
     if (!desc) throw domainError(400, 'Captura una descripción.');
+    const ts = Date.now();
     insertMovement({
       turno_id: shift.id,
       operador: operator,
       tipo,
       concepto: desc,
       monto: amount,
-      metodo_pago: 'efectivo'
+      metodo_pago: 'efectivo',
+      timestamp: ts
     });
-    return obtenerCorte();
+    const mov = db.prepare(`SELECT * FROM caja_movimientos WHERE turno_id = ? AND timestamp = ? AND tipo = ? LIMIT 1`).get(shift.id, ts, tipo);
+    return { movimiento: mov, corte: obtenerCorte() };
   }
 
   function calcularTotalesTurno(turnoId) {

@@ -43,11 +43,13 @@ function normalizarEstadoMvp(state) {
 }
 
 function createDatabase(filename = process.env.SQLITE_FILE || (() => {
-  // En Electron, electron-main.js pone ELECTRON_APP_DATA → datos en %APPDATA%/KaanLuum
   if (process.env.ELECTRON_APP_DATA) return require('node:path').join(process.env.ELECTRON_APP_DATA, 'kaan_luum.db');
   if (process.env.VERCEL) return require('node:path').join('/tmp', 'kaan_luum.db');
   return require('node:path').join(__dirname, 'kaan_luum.db');
 })()) {
+  const fs = require('node:fs');
+  const dir = require('node:path').dirname(filename);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   const db = new Database(filename);
   db.pragma('journal_mode = WAL');
   // FULL = cada venta confirmada se escribe a disco de forma segura. Protege la
