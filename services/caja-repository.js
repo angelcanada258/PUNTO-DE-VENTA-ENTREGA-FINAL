@@ -98,7 +98,7 @@ function ensureCajaSchema(db) {
 
     CREATE TABLE IF NOT EXISTS caja_inventario_color (
       color TEXT PRIMARY KEY,
-      stock_total INTEGER NOT NULL DEFAULT 100
+      stock_total INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS caja_recargas (
@@ -156,9 +156,17 @@ function ensureCajaSchema(db) {
 
   const colors = db.prepare('SELECT DISTINCT color_brazalete AS color FROM tickets').all();
   const insertColor = db.prepare(`
-    INSERT OR IGNORE INTO caja_inventario_color(color, stock_total) VALUES (?, 100)
+    INSERT OR IGNORE INTO caja_inventario_color(color, stock_total) VALUES (?, 0)
   `);
   for (const { color } of colors) insertColor.run(color);
+
+  db.exec(`
+    UPDATE caja_inventario_color SET stock_total = 0
+    WHERE color NOT IN (SELECT DISTINCT color FROM caja_recargas)
+      AND stock_total > 0
+      AND (SELECT COUNT(*) FROM caja_brazaletes WHERE caja_brazaletes.color = caja_inventario_color.color) = 0
+      AND (SELECT COUNT(*) FROM almacen_folios WHERE almacen_folios.color = caja_inventario_color.color) = 0
+  `);
 }
 
 function createCajaRepository(db) {

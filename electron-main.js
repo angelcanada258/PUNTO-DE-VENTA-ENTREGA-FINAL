@@ -41,20 +41,7 @@ function resolveDataDir() {
 // Si existe la BD en la ubicación vieja (%APPDATA%/Kaan Luum POS/) y la nueva
 // aún está vacía, la migramos para no perder los datos del cliente.
 function migrarDesdeAppData(nuevoDir) {
-  try {
-    const viejoDir = app.getPath('userData');
-    const viejoDb = path.join(viejoDir, 'kaan_luum.db');
-    const nuevoDb = path.join(nuevoDir, 'kaan_luum.db');
-    if (viejoDir === nuevoDir) return;
-    if (!fs.existsSync(viejoDb) || fs.existsSync(nuevoDb)) return;
-    for (const sufijo of ['', '-wal', '-shm']) {
-      const o = viejoDb + sufijo;
-      if (fs.existsSync(o)) fs.copyFileSync(o, nuevoDb + sufijo);
-    }
-    console.log(`[Kaan Luum] BD migrada de ${viejoDir} a ${nuevoDir}`);
-  } catch (err) {
-    console.error('[Kaan Luum] No se pudo migrar la BD desde %APPDATA%:', err);
-  }
+  return;
 }
 
 // Crea todas las subcarpetas necesarias al arrancar el .exe.

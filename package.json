@@ -42,7 +42,10 @@
       "!database-postgres.js",
       "!vercel.json",
       "!reset-db.js",
-      "!.gitignore"
+      "!.gitignore",
+      "!**/*.db",
+      "!**/*.db-wal",
+      "!**/*.db-shm"
     ],
     "asar": true,
     "asarUnpack": [
